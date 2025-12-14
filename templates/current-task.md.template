@@ -1,0 +1,22 @@
+# Current Task
+
+## Goal
+{goal}
+
+## Status
+{status}
+
+## What's Done
+{completed}
+
+## Files Modified This Session
+{files_modified}
+
+## Blockers
+{blockers}
+
+## Next Steps
+{next_steps}
+
+## Context for Next Session
+{context}

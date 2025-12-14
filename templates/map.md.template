@@ -1,0 +1,21 @@
+# Project Map
+
+## What This Project Does
+{description}
+
+## Entry Points
+{entry_points}
+
+## Data Flow
+{data_flow}
+
+## File Purpose Index
+| File | Purpose | Key Functions |
+|------|---------|---------------|
+{file_index}
+
+## Current State
+{current_state}
+
+## Non-Obvious Things
+{non_obvious}

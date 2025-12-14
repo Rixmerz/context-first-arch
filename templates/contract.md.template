@@ -1,0 +1,23 @@
+# {name} Contract
+
+## Purpose
+{purpose}
+
+## Public Interface
+```{language}
+{interface}
+```
+
+## Errors This Can Throw
+{errors}
+
+## Dependencies
+{dependencies}
+
+## Side Effects
+{side_effects}
+
+## Example Usage
+```{language}
+{example}
+```

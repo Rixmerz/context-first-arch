@@ -1,0 +1,78 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "context-first-architecture"
+version = "0.2.0"
+description = "Context-First Architecture + Serena: Complete AI-assisted development framework with semantic code analysis"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+keywords = ["llm", "architecture", "mcp", "claude", "ai", "development", "lsp", "semantic", "serena"]
+authors = [
+    { name = "Context-First Team" }
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "mcp>=0.1.0",
+    "pydantic>=2.0.0",
+    # LSP/Semantic analysis (Serena integration)
+    "multilspy>=0.1.0",
+]
+
+[project.optional-dependencies]
+tree-sitter = [
+    "tree-sitter>=0.21.0",
+    "tree-sitter-javascript>=0.21.0",
+    "tree-sitter-typescript>=0.21.0",
+    "tree-sitter-rust>=0.21.0",
+]
+lsp = [
+    # Language-specific LSP servers
+    "python-lsp-server>=1.9.0",
+    "pylsp-mypy>=0.6.0",
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+]
+all = [
+    "context-first-architecture[tree-sitter,lsp,dev]",
+]
+
+[project.scripts]
+cfa = "src.mcp_server.server:main"
+cfa-server = "src.mcp_server.server:main"
+
+[project.urls]
+Documentation = "https://github.com/context-first/context-first-architecture#readme"
+Issues = "https://github.com/context-first/context-first-architecture/issues"
+Source = "https://github.com/context-first/context-first-architecture"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src", "templates"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I", "W"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
