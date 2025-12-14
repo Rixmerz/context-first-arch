@@ -1,12 +1,12 @@
 """
 Context-First Architecture + Serena MCP Server
 
-Unified server exposing 49+ tools for AI-assisted development:
-- CFA Core (23 tools): Project, contract, task, context management
-- Symbol Tools (9): Semantic code operations via LSP
-- File Tools (9): Enhanced file operations
-- Workflow Tools (7): Meta-cognition and reflection
-- Memory Tools (6): Persistent project knowledge
+Unified server exposing 44 tools for AI-assisted development:
+- CFA Core (20 tools): Project, contract, task, context management
+- Symbol Tools (8): Semantic code operations via LSP
+- File Tools (7): Enhanced file operations
+- Workflow Tools (4): Meta-cognition and reflection
+- Memory Tools (5): Persistent project knowledge
 """
 
 import asyncio
@@ -17,7 +17,7 @@ from mcp.server import Server
 from mcp.types import Tool, TextContent
 
 # ============================================================================
-# CFA Core Tools (23)
+# CFA Core Tools (20)
 # ============================================================================
 
 # Project Tools
@@ -55,48 +55,41 @@ from src.mcp_server.tools.map_auto_update import map_auto_update
 from src.mcp_server.tools.test_coverage_map import test_coverage_map
 
 # ============================================================================
-# Memory Tools (6)
+# Memory Tools (5) - Consolidated
 # ============================================================================
 from src.mcp_server.tools.memory_set import memory_set
 from src.mcp_server.tools.memory_get import memory_get
 from src.mcp_server.tools.memory_search import memory_search
 from src.mcp_server.tools.memory_list import memory_list
-from src.mcp_server.tools.memory_edit import memory_edit
 from src.mcp_server.tools.memory_delete import memory_delete
 
 # ============================================================================
-# Symbol Tools - Serena Integration (9)
+# Symbol Tools - Serena Integration (8) - Consolidated
 # ============================================================================
 from src.mcp_server.tools.symbol_find import symbol_find
 from src.mcp_server.tools.symbol_overview import symbol_overview
 from src.mcp_server.tools.symbol_references import symbol_references
 from src.mcp_server.tools.symbol_replace import symbol_replace
-from src.mcp_server.tools.symbol_insert_after import symbol_insert_after
-from src.mcp_server.tools.symbol_insert_before import symbol_insert_before
+from src.mcp_server.tools.symbol_insert import symbol_insert
 from src.mcp_server.tools.symbol_rename import symbol_rename
 from src.mcp_server.tools.lsp_manage import lsp_status, lsp_restart
 
 # ============================================================================
-# File Tools - Serena Integration (9)
+# File Tools - Serena Integration (7) - Consolidated
 # ============================================================================
 from src.mcp_server.tools.file_read import file_read
 from src.mcp_server.tools.file_create import file_create
 from src.mcp_server.tools.file_list import file_list
 from src.mcp_server.tools.file_find import file_find
 from src.mcp_server.tools.file_replace import file_replace
-from src.mcp_server.tools.file_lines_delete import file_lines_delete
-from src.mcp_server.tools.file_lines_replace import file_lines_replace
-from src.mcp_server.tools.file_lines_insert import file_lines_insert
+from src.mcp_server.tools.file_edit_lines import file_edit_lines
 from src.mcp_server.tools.file_search import file_search
 
 # ============================================================================
-# Workflow Tools - Serena Integration (7)
+# Workflow Tools - Serena Integration (4) - Consolidated
 # ============================================================================
 from src.mcp_server.tools.workflow_onboard import workflow_onboard
-from src.mcp_server.tools.workflow_check_onboard import workflow_check_onboard
-from src.mcp_server.tools.workflow_think_info import workflow_think_info
-from src.mcp_server.tools.workflow_think_task import workflow_think_task
-from src.mcp_server.tools.workflow_think_done import workflow_think_done
+from src.mcp_server.tools.workflow_reflect import workflow_reflect
 from src.mcp_server.tools.workflow_summarize import workflow_summarize
 from src.mcp_server.tools.workflow_instructions import workflow_instructions
 
@@ -109,7 +102,7 @@ server = Server("context-first-architecture")
 
 
 # ============================================================================
-# Tool Definitions
+# Tool Definitions (44 total)
 # ============================================================================
 
 TOOLS = [
@@ -118,7 +111,7 @@ TOOLS = [
     # ========================================================================
     Tool(
         name="project.init",
-        description="Create a new CFA v2 project with optimized LLM structure",
+        description="Create new CFA v2 project with optimized structure",
         inputSchema={
             "type": "object",
             "properties": {
@@ -134,7 +127,7 @@ TOOLS = [
     ),
     Tool(
         name="project.scan",
-        description="Scan project and update map.md with current code analysis",
+        description="Scan project and update map.md with analysis",
         inputSchema={
             "type": "object",
             "properties": {
@@ -178,7 +171,7 @@ TOOLS = [
     ),
     Tool(
         name="contract.validate",
-        description="Validate implementation against its contract",
+        description="Check implementation matches its contract",
         inputSchema={
             "type": "object",
             "properties": {
@@ -190,7 +183,7 @@ TOOLS = [
     ),
     Tool(
         name="contract.diff",
-        description="Compare contract against implementation with detailed analysis",
+        description="Compare contract vs implementation differences",
         inputSchema={
             "type": "object",
             "properties": {
@@ -203,7 +196,7 @@ TOOLS = [
     ),
     Tool(
         name="contract.sync",
-        description="Sync contracts from implementation changes (code-first workflow)",
+        description="Update contract from implementation changes",
         inputSchema={
             "type": "object",
             "properties": {
@@ -220,7 +213,7 @@ TOOLS = [
     # ========================================================================
     Tool(
         name="task.start",
-        description="Start a new task in current-task.md",
+        description="[PRIMARY] Begin new task in current-task.md",
         inputSchema={
             "type": "object",
             "properties": {
@@ -265,7 +258,7 @@ TOOLS = [
     # ========================================================================
     Tool(
         name="decision.add",
-        description="Document an architecture decision in decisions.md",
+        description="Document architecture decision in decisions.md",
         inputSchema={
             "type": "object",
             "properties": {
@@ -282,7 +275,7 @@ TOOLS = [
     ),
     Tool(
         name="context.load",
-        description="Load full project context (map.md + current-task.md) - optimal start",
+        description="Load map.md + current-task.md (use workflow.onboard for full context)",
         inputSchema={
             "type": "object",
             "properties": {
@@ -293,7 +286,7 @@ TOOLS = [
     ),
     Tool(
         name="context.optimize",
-        description="Optimize file content for LLM token limits",
+        description="Optimize content for LLM token limits",
         inputSchema={
             "type": "object",
             "properties": {
@@ -311,7 +304,7 @@ TOOLS = [
     # ========================================================================
     Tool(
         name="dependency.analyze",
-        description="Analyze dependencies and dependents for features or files",
+        description="Analyze dependencies for features or files",
         inputSchema={
             "type": "object",
             "properties": {
@@ -325,7 +318,7 @@ TOOLS = [
     ),
     Tool(
         name="pattern.detect",
-        description="Detect code patterns and identify inconsistencies",
+        description="Detect code patterns and inconsistencies",
         inputSchema={
             "type": "object",
             "properties": {
@@ -337,7 +330,7 @@ TOOLS = [
     ),
     Tool(
         name="impact.analyze",
-        description="Calculate impact and risk of code changes with blast radius",
+        description="Calculate change impact and blast radius",
         inputSchema={
             "type": "object",
             "properties": {
@@ -350,7 +343,7 @@ TOOLS = [
     ),
     Tool(
         name="coupling.analyze",
-        description="Analyze feature coupling and identify tight dependencies",
+        description="Analyze feature coupling and dependencies",
         inputSchema={
             "type": "object",
             "properties": {
@@ -367,7 +360,7 @@ TOOLS = [
     # ========================================================================
     Tool(
         name="docs.generate",
-        description="Generate comprehensive documentation from code and contracts",
+        description="Generate documentation from code and contracts",
         inputSchema={
             "type": "object",
             "properties": {
@@ -404,25 +397,26 @@ TOOLS = [
     ),
 
     # ========================================================================
-    # MEMORY TOOLS (6)
+    # MEMORY TOOLS (5) - Consolidated
     # ========================================================================
     Tool(
         name="memory.set",
-        description="Store project learnings in persistent memory",
+        description="[PRIMARY] Store learning in memory (supports append mode)",
         inputSchema={
             "type": "object",
             "properties": {
                 "project_path": {"type": "string", "description": "Path to CFA project"},
                 "key": {"type": "string", "description": "Unique identifier for the memory"},
                 "value": {"type": "string", "description": "Content to store"},
-                "tags": {"type": "array", "items": {"type": "string"}, "description": "Tags for categorization"}
+                "tags": {"type": "array", "items": {"type": "string"}, "description": "Tags for categorization"},
+                "append": {"type": "boolean", "description": "Append to existing instead of replace"}
             },
             "required": ["project_path", "key", "value"]
         }
     ),
     Tool(
         name="memory.get",
-        description="Retrieve project learnings from memory",
+        description="Retrieve memory by key",
         inputSchema={
             "type": "object",
             "properties": {
@@ -434,7 +428,7 @@ TOOLS = [
     ),
     Tool(
         name="memory.search",
-        description="Search project learnings by query and/or tags",
+        description="Search memories by query and/or tags",
         inputSchema={
             "type": "object",
             "properties": {
@@ -460,21 +454,6 @@ TOOLS = [
         }
     ),
     Tool(
-        name="memory.edit",
-        description="Edit an existing memory",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to CFA project"},
-                "key": {"type": "string", "description": "Memory identifier"},
-                "new_value": {"type": "string", "description": "New content"},
-                "new_tags": {"type": "array", "items": {"type": "string"}, "description": "New tags"},
-                "append": {"type": "boolean", "description": "Append instead of replace"}
-            },
-            "required": ["project_path", "key"]
-        }
-    ),
-    Tool(
         name="memory.delete",
         description="Delete a stored memory",
         inputSchema={
@@ -488,11 +467,11 @@ TOOLS = [
     ),
 
     # ========================================================================
-    # SYMBOL TOOLS - Serena Integration (9)
+    # SYMBOL TOOLS - Serena (8) - Consolidated
     # ========================================================================
     Tool(
         name="symbol.find",
-        description="Find symbols (functions, classes, methods) in a project",
+        description="[PRIMARY] Find symbols (functions, classes) by name",
         inputSchema={
             "type": "object",
             "properties": {
@@ -508,7 +487,7 @@ TOOLS = [
     ),
     Tool(
         name="symbol.overview",
-        description="Get hierarchical overview of symbols in a file",
+        description="Get hierarchical symbol structure of a file",
         inputSchema={
             "type": "object",
             "properties": {
@@ -522,7 +501,7 @@ TOOLS = [
     ),
     Tool(
         name="symbol.references",
-        description="Find all references to a symbol at a location",
+        description="Find all references to a symbol",
         inputSchema={
             "type": "object",
             "properties": {
@@ -537,7 +516,7 @@ TOOLS = [
     ),
     Tool(
         name="symbol.replace",
-        description="Replace the body/implementation of a symbol",
+        description="[PRIMARY] Replace symbol body. Use for code changes",
         inputSchema={
             "type": "object",
             "properties": {
@@ -550,36 +529,23 @@ TOOLS = [
         }
     ),
     Tool(
-        name="symbol.insert_after",
-        description="Insert content after a symbol definition",
+        name="symbol.insert",
+        description="Insert content before/after a symbol",
         inputSchema={
             "type": "object",
             "properties": {
                 "project_path": {"type": "string", "description": "Path to project root"},
                 "file_path": {"type": "string", "description": "File containing the symbol"},
-                "symbol_name": {"type": "string", "description": "Symbol to insert after"},
-                "content": {"type": "string", "description": "Code to insert"}
-            },
-            "required": ["project_path", "file_path", "symbol_name", "content"]
-        }
-    ),
-    Tool(
-        name="symbol.insert_before",
-        description="Insert content before a symbol definition",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to project root"},
-                "file_path": {"type": "string", "description": "File containing the symbol"},
-                "symbol_name": {"type": "string", "description": "Symbol to insert before"},
-                "content": {"type": "string", "description": "Code to insert"}
+                "symbol_name": {"type": "string", "description": "Symbol to insert relative to"},
+                "content": {"type": "string", "description": "Code to insert"},
+                "position": {"type": "string", "enum": ["before", "after"], "description": "before or after (default: after)"}
             },
             "required": ["project_path", "file_path", "symbol_name", "content"]
         }
     ),
     Tool(
         name="symbol.rename",
-        description="Rename a symbol across the entire project",
+        description="Rename symbol across entire project",
         inputSchema={
             "type": "object",
             "properties": {
@@ -593,7 +559,7 @@ TOOLS = [
     ),
     Tool(
         name="lsp.status",
-        description="Get status of LSP servers for a project",
+        description="Get LSP server status",
         inputSchema={
             "type": "object",
             "properties": {
@@ -604,7 +570,7 @@ TOOLS = [
     ),
     Tool(
         name="lsp.restart",
-        description="Restart LSP server(s) for a project",
+        description="Restart LSP server(s)",
         inputSchema={
             "type": "object",
             "properties": {
@@ -616,11 +582,11 @@ TOOLS = [
     ),
 
     # ========================================================================
-    # FILE TOOLS - Serena Integration (9)
+    # FILE TOOLS - Serena (7) - Consolidated
     # ========================================================================
     Tool(
         name="file.read",
-        description="Read file contents with optional line range",
+        description="Read file with optional line range",
         inputSchema={
             "type": "object",
             "properties": {
@@ -635,7 +601,7 @@ TOOLS = [
     ),
     Tool(
         name="file.create",
-        description="Create a new text file with content",
+        description="Create new file with content",
         inputSchema={
             "type": "object",
             "properties": {
@@ -650,7 +616,7 @@ TOOLS = [
     ),
     Tool(
         name="file.list",
-        description="List directory contents with filtering",
+        description="List directory contents with filters",
         inputSchema={
             "type": "object",
             "properties": {
@@ -667,7 +633,7 @@ TOOLS = [
     ),
     Tool(
         name="file.find",
-        description="Find files matching a pattern",
+        description="Find files matching pattern (glob/regex)",
         inputSchema={
             "type": "object",
             "properties": {
@@ -683,7 +649,7 @@ TOOLS = [
     ),
     Tool(
         name="file.replace",
-        description="Replace content in a file (literal or regex)",
+        description="Search/replace in file. Use symbol.replace for code",
         inputSchema={
             "type": "object",
             "properties": {
@@ -699,51 +665,26 @@ TOOLS = [
         }
     ),
     Tool(
-        name="file.delete_lines",
-        description="Delete specific lines from a file",
+        name="file.edit_lines",
+        description="Delete/replace/insert lines. Use symbol.* for code",
         inputSchema={
             "type": "object",
             "properties": {
                 "project_path": {"type": "string", "description": "Path to project root"},
                 "file_path": {"type": "string", "description": "Relative path to file"},
-                "lines": {"description": "Lines to delete: number, list, or range string like '10-20'"}
+                "operation": {"type": "string", "enum": ["delete", "replace", "insert"], "description": "Operation type"},
+                "lines": {"description": "Lines: number, [list], or 'range' for delete/insert"},
+                "content": {"type": "string", "description": "Content for replace/insert"},
+                "start_line": {"type": "number", "description": "Start line for replace"},
+                "end_line": {"type": "number", "description": "End line for replace"},
+                "insert_after": {"type": "boolean", "description": "Insert after line (for insert)"}
             },
-            "required": ["project_path", "file_path", "lines"]
-        }
-    ),
-    Tool(
-        name="file.replace_lines",
-        description="Replace a range of lines with new content",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to project root"},
-                "file_path": {"type": "string", "description": "Relative path to file"},
-                "start_line": {"type": "number", "description": "First line to replace"},
-                "end_line": {"type": "number", "description": "Last line to replace"},
-                "new_content": {"type": "string", "description": "New content to insert"}
-            },
-            "required": ["project_path", "file_path", "start_line", "end_line", "new_content"]
-        }
-    ),
-    Tool(
-        name="file.insert_at_line",
-        description="Insert content at a specific line",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to project root"},
-                "file_path": {"type": "string", "description": "Relative path to file"},
-                "line": {"type": "number", "description": "Line number for insertion"},
-                "content": {"type": "string", "description": "Content to insert"},
-                "insert_after": {"type": "boolean", "description": "Insert after instead of before"}
-            },
-            "required": ["project_path", "file_path", "line", "content"]
+            "required": ["project_path", "file_path", "operation"]
         }
     ),
     Tool(
         name="file.search",
-        description="Search for patterns across files (enhanced grep)",
+        description="[PRIMARY] Search for patterns across files (grep)",
         inputSchema={
             "type": "object",
             "properties": {
@@ -762,15 +703,16 @@ TOOLS = [
     ),
 
     # ========================================================================
-    # WORKFLOW TOOLS - Serena Integration (7)
+    # WORKFLOW TOOLS - Serena (4) - Consolidated
     # ========================================================================
     Tool(
         name="workflow.onboard",
-        description="Generate comprehensive project context for AI onboarding",
+        description="[START HERE] Load project context. Use check_only=true to verify freshness",
         inputSchema={
             "type": "object",
             "properties": {
                 "project_path": {"type": "string", "description": "Path to project root"},
+                "check_only": {"type": "boolean", "description": "Only check status, don't load full context"},
                 "include_contracts": {"type": "boolean", "description": "Include contract summaries"},
                 "include_decisions": {"type": "boolean", "description": "Include decisions"},
                 "max_context_size": {"type": "number", "description": "Max context size in chars"}
@@ -779,61 +721,25 @@ TOOLS = [
         }
     ),
     Tool(
-        name="workflow.check_onboard",
-        description="Check if onboarding has been performed and if refresh needed",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to project root"}
-            },
-            "required": ["project_path"]
-        }
-    ),
-    Tool(
-        name="workflow.think_info",
-        description="Reflect on collected information before proceeding",
+        name="workflow.reflect",
+        description="Structured thinking: type=info|task|done",
         inputSchema={
             "type": "object",
             "properties": {
                 "project_path": {"type": "string", "description": "Path to project root"},
-                "information": {"type": "string", "description": "Information gathered"},
+                "reflect_type": {"type": "string", "enum": ["info", "task", "done"], "description": "Reflection type"},
+                "content": {"type": "string", "description": "Content to reflect on"},
                 "context": {"type": "string", "description": "Additional context"},
-                "questions": {"type": "array", "items": {"type": "string"}, "description": "Questions to consider"}
+                "questions": {"type": "array", "items": {"type": "string"}, "description": "Questions to consider (for info)"},
+                "concerns": {"type": "array", "items": {"type": "string"}, "description": "Concerns to address (for task)"},
+                "tests_passed": {"type": "boolean", "description": "Whether tests passed (for done)"}
             },
-            "required": ["project_path", "information"]
-        }
-    ),
-    Tool(
-        name="workflow.think_task",
-        description="Validate approach against task requirements",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to project root"},
-                "task_description": {"type": "string", "description": "Task being worked on"},
-                "current_approach": {"type": "string", "description": "Implementation approach"},
-                "concerns": {"type": "array", "items": {"type": "string"}, "description": "Concerns to address"}
-            },
-            "required": ["project_path", "task_description", "current_approach"]
-        }
-    ),
-    Tool(
-        name="workflow.think_done",
-        description="Evaluate whether a task is truly complete",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to project root"},
-                "task_description": {"type": "string", "description": "Original task"},
-                "work_done": {"type": "string", "description": "Summary of work completed"},
-                "tests_passed": {"type": "boolean", "description": "Whether tests passed"}
-            },
-            "required": ["project_path", "task_description", "work_done"]
+            "required": ["project_path", "reflect_type", "content"]
         }
     ),
     Tool(
         name="workflow.summarize",
-        description="Generate structured summary of changes made",
+        description="Generate summary of changes made",
         inputSchema={
             "type": "object",
             "properties": {
@@ -857,7 +763,7 @@ TOOLS = [
     ),
     Tool(
         name="workflow.instructions",
-        description="Get CFA development workflow instructions and best practices",
+        description="Get CFA workflow guide and best practices",
         inputSchema={
             "type": "object",
             "properties": {
@@ -900,39 +806,32 @@ TOOL_MAP = {
     "docs.generate": docs_generate,
     "map.auto_update": map_auto_update,
     "test.coverage_map": test_coverage_map,
-    # Memory
+    # Memory (5 - consolidated)
     "memory.set": memory_set,
     "memory.get": memory_get,
     "memory.search": memory_search,
     "memory.list": memory_list,
-    "memory.edit": memory_edit,
     "memory.delete": memory_delete,
-    # Symbol (Serena)
+    # Symbol (8 - consolidated)
     "symbol.find": symbol_find,
     "symbol.overview": symbol_overview,
     "symbol.references": symbol_references,
     "symbol.replace": symbol_replace,
-    "symbol.insert_after": symbol_insert_after,
-    "symbol.insert_before": symbol_insert_before,
+    "symbol.insert": symbol_insert,
     "symbol.rename": symbol_rename,
     "lsp.status": lsp_status,
     "lsp.restart": lsp_restart,
-    # File (Serena)
+    # File (7 - consolidated)
     "file.read": file_read,
     "file.create": file_create,
     "file.list": file_list,
     "file.find": file_find,
     "file.replace": file_replace,
-    "file.delete_lines": file_lines_delete,
-    "file.replace_lines": file_lines_replace,
-    "file.insert_at_line": file_lines_insert,
+    "file.edit_lines": file_edit_lines,
     "file.search": file_search,
-    # Workflow (Serena)
+    # Workflow (4 - consolidated)
     "workflow.onboard": workflow_onboard,
-    "workflow.check_onboard": workflow_check_onboard,
-    "workflow.think_info": workflow_think_info,
-    "workflow.think_task": workflow_think_task,
-    "workflow.think_done": workflow_think_done,
+    "workflow.reflect": workflow_reflect,
     "workflow.summarize": workflow_summarize,
     "workflow.instructions": workflow_instructions,
 }

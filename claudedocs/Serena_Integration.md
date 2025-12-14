@@ -2,16 +2,16 @@
 
 ## Overview
 
-Context-First Architecture (CFA) v2.0 now integrates Serena's semantic code analysis capabilities, providing a comprehensive AI-assisted development framework with **51 MCP tools**.
+Context-First Architecture (CFA) v2.0 integrates Serena's semantic code analysis capabilities, providing a comprehensive AI-assisted development framework with **44 optimized MCP tools** (consolidated from 51 for improved AI agent usability).
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    CFA + Serena MCP Server                      │
-│                        (51 Tools)                               │
+│                        (44 Tools)                               │
 ├─────────────────────────────────────────────────────────────────┤
-│  CFA Core (20)  │  Memory (6)  │  Symbol (9)  │  File (9)  │  Workflow (7)  │
+│  CFA Core (20)  │  Memory (5)  │  Symbol (8)  │  File (7)  │  Workflow (4)  │
 ├─────────────────┼──────────────┼──────────────┼────────────┼────────────────┤
 │  project.*      │  memory.*    │  symbol.*    │  file.*    │  workflow.*    │
 │  contract.*     │              │  lsp.*       │            │                │
@@ -27,6 +27,20 @@ Context-First Architecture (CFA) v2.0 now integrates Serena's semantic code anal
 │  test.*         │              │              │            │                │
 └─────────────────┴──────────────┴──────────────┴────────────┴────────────────┘
 ```
+
+## Tool Consolidation (v0.2.1)
+
+To improve AI agent usability, we consolidated redundant tools:
+
+| Before (51 tools) | After (44 tools) | Rationale |
+|-------------------|------------------|-----------|
+| `workflow.think_info` + `think_task` + `think_done` | `workflow.reflect` with type parameter | Same functionality, single tool |
+| `workflow.onboard` + `check_onboard` | `workflow.onboard` with check_only parameter | Related functionality unified |
+| `symbol.insert_before` + `insert_after` | `symbol.insert` with position parameter | Differ only by position |
+| `file.delete_lines` + `replace_lines` + `insert_at_line` | `file.edit_lines` with operation parameter | All line-based operations |
+| `memory.set` + `memory.edit` | `memory.set` with append parameter | Set already implied edit |
+
+**Principle**: If tools differ only by a single parameter, consolidate them.
 
 ## Tool Categories
 
@@ -44,7 +58,7 @@ Context-First Architecture (CFA) v2.0 now integrates Serena's semantic code anal
 - `contract.sync` - Sync from code changes
 
 **Task Management (3)**
-- `task.start` - Begin new task
+- `task.start` - [PRIMARY] Begin new task
 - `task.update` - Update progress
 - `task.complete` - Mark complete
 
@@ -64,37 +78,39 @@ Context-First Architecture (CFA) v2.0 now integrates Serena's semantic code anal
 - `map.auto_update` - Auto-update map.md
 - `test.coverage_map` - Map test coverage
 
-### 2. Memory Tools (6)
+### 2. Memory Tools (5) - Consolidated
 
 Persistent project knowledge storage using SQLite.
 
-- `memory.set` - Store learning
+- `memory.set` - [PRIMARY] Store learning (supports append mode)
 - `memory.get` - Retrieve by key
 - `memory.search` - Search by query/tags
 - `memory.list` - List all memories
-- `memory.edit` - Edit existing memory
 - `memory.delete` - Delete memory
 
-### 3. Symbol Tools (9) - Serena Integration
+**Consolidated**: `memory.edit` → merged into `memory.set` with `append=True`
+
+### 3. Symbol Tools (8) - Serena Integration
 
 Semantic code operations via LSP (Language Server Protocol).
 
-- `symbol.find` - Find symbols by name
+- `symbol.find` - [PRIMARY] Find symbols by name
 - `symbol.overview` - Get file symbol hierarchy
 - `symbol.references` - Find all references
-- `symbol.replace` - Replace symbol body
-- `symbol.insert_after` - Insert after symbol
-- `symbol.insert_before` - Insert before symbol
+- `symbol.replace` - [PRIMARY] Replace symbol body
+- `symbol.insert` - Insert before/after symbol (position parameter)
 - `symbol.rename` - Rename across project
 - `lsp.status` - Get LSP server status
 - `lsp.restart` - Restart LSP server(s)
+
+**Consolidated**: `symbol.insert_before` + `symbol.insert_after` → `symbol.insert(position="before|after")`
 
 **Supported Languages** (via multilspy):
 - Python, TypeScript, JavaScript
 - Rust, Go, Java
 - C/C++, C#, Ruby, PHP
 
-### 4. File Tools (9) - Serena Integration
+### 4. File Tools (7) - Serena Integration
 
 Enhanced file operations respecting CFA structure.
 
@@ -102,43 +118,90 @@ Enhanced file operations respecting CFA structure.
 - `file.create` - Create new file
 - `file.list` - List directory contents
 - `file.find` - Find files by pattern
-- `file.replace` - Search and replace
-- `file.delete_lines` - Delete specific lines
-- `file.replace_lines` - Replace line range
-- `file.insert_at_line` - Insert at line
-- `file.search` - Search across files (grep)
+- `file.replace` - Text search/replace. Use symbol.replace for code
+- `file.edit_lines` - Line operations (delete/replace/insert)
+- `file.search` - [PRIMARY] Search across files (grep)
 
-### 5. Workflow Tools (7) - Serena Integration
+**Consolidated**: `file.delete_lines` + `file.replace_lines` + `file.insert_at_line` → `file.edit_lines(operation="delete|replace|insert")`
+
+### 5. Workflow Tools (4) - Serena Integration
 
 Meta-cognition and reflection for AI agents.
 
-- `workflow.onboard` - Generate project context
-- `workflow.check_onboard` - Verify onboarding status
-- `workflow.think_info` - Reflect on information
-- `workflow.think_task` - Validate approach
-- `workflow.think_done` - Verify completion
+- `workflow.onboard` - [START HERE] Load project context (includes check mode)
+- `workflow.reflect` - Meta-cognition for info/task/done phases
 - `workflow.summarize` - Summarize changes
 - `workflow.instructions` - Get CFA workflow guide
+
+**Consolidated**:
+- `workflow.check_onboard` → merged into `workflow.onboard(check_only=True)`
+- `workflow.think_info` + `workflow.think_task` + `workflow.think_done` → `workflow.reflect(type="info|task|done")`
 
 ## Recommended Workflow
 
 ```
 Session Start:
-1. workflow.onboard          → Load full project context
-2. workflow.check_onboard    → Verify context freshness
+1. workflow.onboard              → Load full project context
 
 Task Execution:
-3. task.start                → Record task goal
-4. symbol.find / file.search → Explore codebase
-5. workflow.think_info       → Reflect on findings
-6. workflow.think_task       → Validate approach
-7. symbol.replace / file.*   → Make changes
-8. workflow.think_done       → Verify completion
-9. workflow.summarize        → Generate summary
-10. task.complete            → Mark done
+2. task.start                    → Record task goal
+3. symbol.find / file.search     → Explore codebase
+4. workflow.reflect(type="info") → Reflect on findings
+5. workflow.reflect(type="task") → Validate approach
+6. symbol.replace / file.*       → Make changes
+7. workflow.reflect(type="done") → Verify completion
+8. workflow.summarize            → Generate summary
+9. task.complete                 → Mark done
 
 Session End:
-11. memory.set               → Store learnings
+10. memory.set                   → Store learnings
+```
+
+## Consolidated Tool Reference
+
+```python
+# Workflow reflection (was 3 tools)
+workflow.reflect(
+    type="info" | "task" | "done",
+    content: str,
+    context?: str,
+    questions?: list,    # for info
+    concerns?: list,     # for task
+    tests_passed?: bool  # for done
+)
+
+# Workflow onboarding (was 2 tools)
+workflow.onboard(
+    check_only=False,
+    include_contracts=True,
+    include_decisions=True,
+    max_context_size=50000
+)
+
+# Symbol insertion (was 2 tools)
+symbol.insert(
+    symbol_name: str,
+    content: str,
+    position="before" | "after"
+)
+
+# File line operations (was 3 tools)
+file.edit_lines(
+    operation="delete" | "replace" | "insert",
+    lines: int | list | str,  # for delete/insert
+    content?: str,            # for replace/insert
+    start_line?: int,         # for replace
+    end_line?: int,           # for replace
+    insert_after?: bool       # for insert
+)
+
+# Memory storage (was 2 tools)
+memory.set(
+    key: str,
+    value: str,
+    tags?: list,
+    append=False  # True to append instead of replace
+)
 ```
 
 ## LSP Fallback Mode
@@ -196,14 +259,15 @@ symbol.rename    → Updates all references automatically
 
 ### 3. Reflect Before Acting
 ```
-workflow.think_info → After gathering information
-workflow.think_task → Before implementation
-workflow.think_done → Before marking complete
+workflow.reflect(type="info") → After gathering information
+workflow.reflect(type="task") → Before implementation
+workflow.reflect(type="done") → Before marking complete
 ```
 
 ### 4. Store Learnings
 ```
 memory.set → Persist insights for future sessions
+memory.set(append=True) → Add to existing memory
 ```
 
 ### 5. Validate Against Contracts
@@ -222,13 +286,14 @@ contract.diff     → See detailed differences
 | Decision/Context | 3 | CFA |
 | Analysis | 4 | CFA |
 | Documentation | 3 | CFA |
-| Memory | 6 | CFA + Serena |
-| Symbol | 9 | Serena |
-| File | 9 | Serena |
-| Workflow | 7 | Serena |
-| **Total** | **51** | |
+| Memory | 5 | CFA + Serena |
+| Symbol | 8 | Serena |
+| File | 7 | Serena |
+| Workflow | 4 | Serena |
+| **Total** | **44** | |
 
 ## Version History
 
+- **v0.2.1** - Tool consolidation (44 tools, optimized for AI agents)
 - **v0.2.0** - Serena integration (51 tools)
 - **v0.1.x** - CFA Core (23 tools)

@@ -8,7 +8,7 @@ A comprehensive AI-assisted development framework combining architecture optimiz
 
 - **Context-First Architecture**: Project structure optimized for LLM context windows
 - **Serena Integration**: Semantic code analysis via Language Server Protocol (LSP)
-- **51 MCP Tools**: Unified toolkit for AI-assisted development
+- **44 MCP Tools**: Optimized toolkit for AI-assisted development
 - **Workflow Meta-cognition**: Structured thinking tools for AI agents
 - **Multi-language Support**: 30+ languages including Python, TypeScript, Rust, Go, Java, C/C++
 
@@ -44,7 +44,7 @@ project/
 └── claudedocs/             # AI-specific documentation
 ```
 
-## MCP Tools (51 Total)
+## MCP Tools (44 Total)
 
 ### CFA Core (20 tools)
 
@@ -60,7 +60,7 @@ project/
 - `contract.sync` - Sync contracts with code changes
 
 **Tasks & Context**
-- `task.start` - Begin new task
+- `task.start` - [PRIMARY] Begin new task
 - `task.update` - Update task progress
 - `task.complete` - Complete task
 - `context.load` - Load full project context
@@ -77,21 +77,20 @@ project/
 - `map.auto_update` - Auto-update map.md
 - `test.coverage_map` - Map test coverage
 
-### Symbol Tools - Serena (9 tools)
+### Symbol Tools - Serena (8 tools)
 
 Semantic code operations via LSP with regex fallback:
 
-- `symbol.find` - Find symbols by name across project
+- `symbol.find` - [PRIMARY] Find symbols by name across project
 - `symbol.overview` - Get file symbol hierarchy
 - `symbol.references` - Find all symbol references
-- `symbol.replace` - Replace symbol body
-- `symbol.insert_after` - Insert after symbol
-- `symbol.insert_before` - Insert before symbol
+- `symbol.replace` - [PRIMARY] Replace symbol body
+- `symbol.insert` - Insert content before/after symbol (position parameter)
 - `symbol.rename` - Rename symbol across project
 - `lsp.status` - Get LSP server status
 - `lsp.restart` - Restart LSP server(s)
 
-### File Tools - Serena (9 tools)
+### File Tools - Serena (7 tools)
 
 Enhanced file operations respecting CFA structure:
 
@@ -99,34 +98,109 @@ Enhanced file operations respecting CFA structure:
 - `file.create` - Create new file
 - `file.list` - List directory contents
 - `file.find` - Find files by pattern
-- `file.replace` - Search and replace content
-- `file.delete_lines` - Delete specific lines
-- `file.replace_lines` - Replace line range
-- `file.insert_at_line` - Insert at specific line
-- `file.search` - Search across files (grep)
+- `file.replace` - Text search/replace. Use symbol.replace for code
+- `file.edit_lines` - Line operations (delete/replace/insert)
+- `file.search` - [PRIMARY] Search across files (grep)
 
-### Workflow Tools - Serena (7 tools)
+### Workflow Tools - Serena (4 tools)
 
 Meta-cognition for structured AI thinking:
 
-- `workflow.onboard` - Generate project context
-- `workflow.check_onboard` - Verify onboarding status
-- `workflow.think_info` - Reflect on information
-- `workflow.think_task` - Validate approach
-- `workflow.think_done` - Verify completion
+- `workflow.onboard` - [START HERE] Load project context (includes check mode)
+- `workflow.reflect` - Meta-cognition (info/task/done types)
 - `workflow.summarize` - Summarize changes
 - `workflow.instructions` - Get workflow guide
 
-### Memory Tools (6 tools)
+### Memory Tools (5 tools)
 
 Persistent project knowledge:
 
-- `memory.set` - Store learning
+- `memory.set` - [PRIMARY] Store learning (includes append mode)
 - `memory.get` - Retrieve by key
 - `memory.search` - Search by query/tags
 - `memory.list` - List all memories
-- `memory.edit` - Edit existing memory
 - `memory.delete` - Delete memory
+
+---
+
+## MCP Design Philosophy (AI Agent Perspective)
+
+This MCP server was designed with AI agents as the primary users. The following design decisions were made to optimize for agent usability.
+
+### Why 44 Tools Instead of 51?
+
+We consolidated redundant tools to reduce cognitive load while maintaining full functionality:
+
+| Before | After | Change |
+|--------|-------|--------|
+| `workflow.think_info` + `think_task` + `think_done` | `workflow.reflect` with type parameter | 3 → 1 |
+| `workflow.onboard` + `check_onboard` | `workflow.onboard` with check_only parameter | 2 → 1 |
+| `symbol.insert_before` + `insert_after` | `symbol.insert` with position parameter | 2 → 1 |
+| `file.delete_lines` + `replace_lines` + `insert_at_line` | `file.edit_lines` with operation parameter | 3 → 1 |
+| `memory.set` + `memory.edit` | `memory.set` with append parameter | 2 → 1 |
+
+**Consolidation Principle**: If tools differ only by a single parameter, they should be consolidated into one tool with that parameter exposed.
+
+### Tool Naming Conventions
+
+- **Prefix groups**: `symbol.*`, `file.*`, `workflow.*` enable quick scanning and discovery
+- **Verb-first for actions**: `find`, `replace`, `insert` immediately convey the operation
+- **No abbreviations**: `workflow.onboard` not `wf.onb` - clarity over brevity
+
+### Description Guidelines
+
+Descriptions are written for AI agents who need to quickly decide which tool to use:
+
+1. **Max 60 characters** when possible - optimized for tool listing scan
+2. **Include WHEN to use**, not just WHAT it does
+3. **Mark primary tools** with indicators: `[START HERE]`, `[PRIMARY]`
+4. **Reference alternatives**: "Use symbol.replace for code changes"
+
+### Tool Hierarchy
+
+Not all tools are equal. Some are used frequently, others for specific situations:
+
+**Always Start With:**
+- `workflow.onboard` - First call in every session
+
+**Primary Tools (80% of usage):**
+- `symbol.find` → `symbol.replace` / `symbol.rename`
+- `file.search` → `file.read`
+- `task.start` → `task.complete`
+- `memory.set`
+
+**Secondary Tools (specific use cases):**
+- Analysis tools (`dependency.analyze`, `coupling.analyze`, `impact.analyze`)
+- Contract tools (`contract.validate`, `contract.diff`, `contract.sync`)
+- LSP management (`lsp.status`, `lsp.restart`)
+
+### Anti-Patterns Avoided
+
+1. **Tool explosion**: Not creating separate tools for minor variations (e.g., separate tools for "insert before" vs "insert after")
+2. **Vague descriptions**: Every description answers "when should I use this?"
+3. **Hidden dependencies**: Tools that require other tools are explicitly documented
+4. **Parameter overload**: Max 5-6 parameters per tool, sensible defaults for all optional parameters
+
+### Consolidated Tool Reference
+
+```
+# Workflow reflection (was 3 tools)
+workflow.reflect(type="info|task|done", content, context?, questions?, concerns?, tests_passed?)
+
+# Workflow onboarding (was 2 tools)
+workflow.onboard(check_only=False, include_contracts=True, include_decisions=True)
+
+# Symbol insertion (was 2 tools)
+symbol.insert(symbol_name, content, position="before|after")
+
+# File line operations (was 3 tools)
+file.edit_lines(operation="delete|replace|insert", lines, content?, start_line?, end_line?, insert_after?)
+
+# Memory storage (was 2 tools)
+memory.set(key, value, tags?, append=False)
+```
+
+---
 
 ## Installation
 
@@ -219,6 +293,9 @@ my-app/
 ```bash
 # Load full project context (ALWAYS START HERE)
 cfa workflow.onboard --path ./my-app
+
+# Check if re-onboarding needed
+cfa workflow.onboard --path ./my-app --check-only
 ```
 
 ### 3. Start Working
@@ -239,21 +316,20 @@ cfa task.complete --path ./my-app --summary "Auth complete with JWT"
 
 ```
 Session Start:
-1. workflow.onboard          → Load full project context
-2. workflow.check_onboard    → Verify context freshness
+1. workflow.onboard              → Load full project context
 
 Task Execution:
-3. task.start                → Record task goal
-4. symbol.find / file.search → Explore codebase
-5. workflow.think_info       → Reflect on findings
-6. workflow.think_task       → Validate approach
-7. symbol.replace / file.*   → Make changes
-8. workflow.think_done       → Verify completion
-9. workflow.summarize        → Generate summary
-10. task.complete            → Mark done
+2. task.start                    → Record task goal
+3. symbol.find / file.search     → Explore codebase
+4. workflow.reflect(type="info") → Reflect on findings
+5. workflow.reflect(type="task") → Validate approach
+6. symbol.replace / file.*       → Make changes
+7. workflow.reflect(type="done") → Verify completion
+8. workflow.summarize            → Generate summary
+9. task.complete                 → Mark done
 
 Session End:
-11. memory.set               → Store learnings
+10. memory.set                   → Store learnings
 ```
 
 ## Configuration
@@ -313,15 +389,15 @@ Use workflow tools for meta-cognition before and after work.
 
 ## Best Practices
 
-### ✅ Do This
+### Do This
 
 - Start every session with `workflow.onboard`
 - Use `symbol.replace` for function changes (not `file.replace`)
 - Store insights with `memory.set` after discoveries
-- Validate with `workflow.think_*` tools before marking complete
+- Validate with `workflow.reflect` tools before marking complete
 - Keep contracts synchronized with `contract.sync`
 
-### ❌ Avoid This
+### Avoid This
 
 - Don't skip onboarding - it's essential for context
 - Don't use text replacement for semantic operations
@@ -374,7 +450,7 @@ GitHub: https://github.com/Rixmerz/context-first-arch
 
 ## Version
 
-**v0.2.0** - CFA v2 + Serena Integration (51 tools)
+**v0.2.1** - MCP Tool Consolidation (44 tools, optimized for AI agents)
 
 ## License
 

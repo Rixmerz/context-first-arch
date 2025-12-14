@@ -1,4 +1,8 @@
-"""MCP Tools for Context-First Architecture + Serena Integration."""
+"""MCP Tools for Context-First Architecture + Serena Integration.
+
+Consolidated to 44 tools (down from 51) for improved AI agent usability.
+See README.md "MCP Design Philosophy" section for design decisions.
+"""
 
 # Project Tools
 from src.mcp_server.tools.project_init import project_init
@@ -34,105 +38,91 @@ from src.mcp_server.tools.docs_generate import docs_generate
 from src.mcp_server.tools.map_auto_update import map_auto_update
 from src.mcp_server.tools.test_coverage_map import test_coverage_map
 
-# Memory Tools
-from src.mcp_server.tools.memory_set import memory_set
+# Memory Tools (5 tools - consolidated from 6)
+from src.mcp_server.tools.memory_set import memory_set  # Now includes append mode (was memory_edit)
 from src.mcp_server.tools.memory_get import memory_get
 from src.mcp_server.tools.memory_search import memory_search
 from src.mcp_server.tools.memory_list import memory_list
-from src.mcp_server.tools.memory_edit import memory_edit
 from src.mcp_server.tools.memory_delete import memory_delete
 
-# Symbol Tools (Serena Integration)
+# Symbol Tools (8 tools - consolidated from 9)
 from src.mcp_server.tools.symbol_find import symbol_find
 from src.mcp_server.tools.symbol_overview import symbol_overview
 from src.mcp_server.tools.symbol_references import symbol_references
 from src.mcp_server.tools.symbol_replace import symbol_replace
-from src.mcp_server.tools.symbol_insert_after import symbol_insert_after
-from src.mcp_server.tools.symbol_insert_before import symbol_insert_before
+from src.mcp_server.tools.symbol_insert import symbol_insert  # Consolidates insert_before + insert_after
 from src.mcp_server.tools.symbol_rename import symbol_rename
 from src.mcp_server.tools.lsp_manage import lsp_status, lsp_restart
 
-# File Tools (Serena Integration)
+# File Tools (7 tools - consolidated from 9)
 from src.mcp_server.tools.file_read import file_read
 from src.mcp_server.tools.file_create import file_create
 from src.mcp_server.tools.file_list import file_list
 from src.mcp_server.tools.file_find import file_find
 from src.mcp_server.tools.file_replace import file_replace
-from src.mcp_server.tools.file_lines_delete import file_lines_delete
-from src.mcp_server.tools.file_lines_replace import file_lines_replace
-from src.mcp_server.tools.file_lines_insert import file_lines_insert
+from src.mcp_server.tools.file_edit_lines import file_edit_lines  # Consolidates delete/replace/insert lines
 from src.mcp_server.tools.file_search import file_search
 
-# Workflow Tools (Serena Integration)
-from src.mcp_server.tools.workflow_onboard import workflow_onboard
-from src.mcp_server.tools.workflow_check_onboard import workflow_check_onboard
-from src.mcp_server.tools.workflow_think_info import workflow_think_info
-from src.mcp_server.tools.workflow_think_task import workflow_think_task
-from src.mcp_server.tools.workflow_think_done import workflow_think_done
+# Workflow Tools (4 tools - consolidated from 7)
+from src.mcp_server.tools.workflow_onboard import workflow_onboard  # Now includes check_only mode
+from src.mcp_server.tools.workflow_reflect import workflow_reflect  # Consolidates 3 think tools
 from src.mcp_server.tools.workflow_summarize import workflow_summarize
 from src.mcp_server.tools.workflow_instructions import workflow_instructions
 
 __all__ = [
-    # Project
+    # Project (3)
     "project_init",
     "project_scan",
     "project_migrate",
-    # Context
+    # Context (2)
     "context_load",
     "context_optimize",
-    # Task
+    # Task (3)
     "task_start",
     "task_update",
     "task_complete",
-    # Decision
+    # Decision (1)
     "decision_add",
-    # Contract
+    # Contract (4)
     "contract_create",
     "contract_validate",
     "contract_diff",
     "contract_sync",
-    # Analysis
+    # Analysis (4)
     "dependency_analyze",
     "pattern_detect",
     "impact_analyze",
     "coupling_analyze",
-    # Documentation
+    # Documentation (3)
     "docs_generate",
     "map_auto_update",
     "test_coverage_map",
-    # Memory
+    # Memory (5)
     "memory_set",
     "memory_get",
     "memory_search",
     "memory_list",
-    "memory_edit",
     "memory_delete",
-    # Symbol (Serena)
+    # Symbol (8)
     "symbol_find",
     "symbol_overview",
     "symbol_references",
     "symbol_replace",
-    "symbol_insert_after",
-    "symbol_insert_before",
+    "symbol_insert",
     "symbol_rename",
     "lsp_status",
     "lsp_restart",
-    # File (Serena)
+    # File (7)
     "file_read",
     "file_create",
     "file_list",
     "file_find",
     "file_replace",
-    "file_lines_delete",
-    "file_lines_replace",
-    "file_lines_insert",
+    "file_edit_lines",
     "file_search",
-    # Workflow (Serena)
+    # Workflow (4)
     "workflow_onboard",
-    "workflow_check_onboard",
-    "workflow_think_info",
-    "workflow_think_task",
-    "workflow_think_done",
+    "workflow_reflect",
     "workflow_summarize",
     "workflow_instructions",
 ]
