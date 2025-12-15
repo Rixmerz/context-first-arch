@@ -44,6 +44,184 @@ project/
 └── claudedocs/             # AI-specific documentation
 ```
 
+### Detailed Architecture Examples
+
+The structure above is intentionally minimal. Real projects need more detail. Here's how to organize features at different complexity levels:
+
+#### Simple Feature (< 100 lines)
+
+```
+src/features/theme-toggle/
+├── theme-toggle.ts           # Complete implementation
+└── theme-toggle.test.ts      # Co-located tests
+```
+
+**When to use**: Single responsibility, minimal logic, no layers needed.
+
+#### Medium Feature (100-300 lines)
+
+```
+src/features/notifications/
+├── contracts/
+│   └── notifications.contract.md    # API specification
+├── notifications.ts                  # Main logic
+├── notifications-utils.ts            # Helper functions
+├── notifications.test.ts             # Unit tests
+└── index.ts                          # Public exports
+```
+
+**When to use**: Multiple functions, some utilities, single concern but needs organization.
+
+#### Complex Feature (> 300 lines, multiple layers)
+
+```
+src/features/authentication/
+├── contracts/
+│   └── auth.contract.md              # Public API specification
+├── core/                             # Business logic layer
+│   ├── auth-service.ts               # Main service
+│   ├── token-manager.ts              # JWT operations
+│   ├── password-hasher.ts            # Password utilities
+│   └── session-store.ts              # Session management
+├── api/                              # API/HTTP layer
+│   ├── auth-routes.ts                # Route definitions
+│   ├── auth-middleware.ts            # Auth middleware
+│   └── validators.ts                 # Input validation
+├── models/                           # Domain models
+│   ├── user-session.ts
+│   └── auth-token.ts
+├── tests/
+│   ├── unit/                         # Unit tests
+│   │   ├── auth-service.test.ts
+│   │   └── token-manager.test.ts
+│   └── integration/                  # Integration tests
+│       └── auth-flow.test.ts
+└── index.ts                          # Public API exports
+```
+
+**When to use**: Multiple responsibilities, clear layers (API/Business/Data), complex testing requirements.
+
+#### Core Domain Logic
+
+```
+src/core/
+├── user/
+│   ├── user-repository.ts            # Data access
+│   ├── user-service.ts               # Business logic
+│   ├── user-types.ts                 # Domain types
+│   └── user.test.ts                  # Tests
+└── billing/
+    ├── billing-engine.ts
+    ├── invoice-generator.ts
+    └── billing.test.ts
+```
+
+**When to use**: Domain logic shared across multiple features.
+
+#### Shared Utilities
+
+```
+src/shared/
+├── types/                            # TypeScript types
+│   ├── api-types.ts
+│   └── domain-types.ts
+├── utils/                            # Common utilities
+│   ├── date-utils.ts
+│   ├── string-utils.ts
+│   └── validation.ts
+├── constants/                        # App constants
+│   └── config.ts
+└── errors/                           # Custom error classes
+    ├── api-errors.ts
+    └── domain-errors.ts
+```
+
+### Organization Decision Tree
+
+Use this guide to decide how to structure your code:
+
+```
+1. Is feature < 100 lines total?
+   → YES: Single file + test file
+   → NO: Continue to 2
+
+2. Does feature have multiple layers? (API + Business + Data)
+   → YES: Use subdirectories (core/, api/, models/)
+   → NO: Continue to 3
+
+3. Is feature 100-300 lines?
+   → YES: Split into main file + utilities
+   → NO: Use complex feature structure with subdirectories
+
+4. Is code used by multiple features?
+   → YES: Move to src/shared/
+   → NO: Keep in feature directory
+```
+
+### File Naming Conventions
+
+- **Features**: Noun-based - `notifications.ts`, `auth-service.ts`
+- **Utilities**: Descriptive - `date-utils.ts`, `validators.ts`
+- **Tests**: Match source file - `auth-service.test.ts`
+- **Contracts**: Feature name - `auth.contract.md`
+- **Index files**: Always `index.ts` (public API)
+
+### Testing Strategy
+
+```
+Feature tests location:
+├── Simple feature: Co-locate with implementation
+│   └── feature.test.ts next to feature.ts
+├── Medium feature: Single test file in feature directory
+│   └── notifications.test.ts
+└── Complex feature: Separate tests/ subdirectory
+    ├── tests/unit/           # Unit tests
+    └── tests/integration/    # Integration tests
+
+Integration tests location:
+└── tests/integration/        # Project-level integration tests
+    └── e2e-scenarios/
+```
+
+### Real-World Example: This Project (context-first)
+
+This MCP server follows these patterns:
+
+```
+src/
+├── core/                             # Core business logic
+│   ├── orchestration/                # Nova agent orchestration (complex)
+│   │   ├── models.py                 # Domain models
+│   │   ├── storage.py                # Data layer
+│   │   ├── router.py                 # Routing logic
+│   │   ├── executor.py               # Execution logic
+│   │   ├── objective_manager.py      # Objective tracking
+│   │   ├── loop_manager.py           # Loop management
+│   │   ├── safe_points.py            # Git operations
+│   │   └── __init__.py               # Public API
+│   ├── memory_store.py               # Memory management (medium)
+│   └── task_tracker.py               # Task tracking (medium)
+│
+├── mcp_server/
+│   ├── tools/                        # MCP tool layer (15 thin wrappers)
+│   │   ├── agent_route.py            # Delegates to orchestration/router.py
+│   │   ├── agent_spawn.py            # Delegates to orchestration/executor.py
+│   │   ├── objective_*.py            # Delegates to orchestration/objective_manager.py
+│   │   ├── loop_*.py                 # Delegates to orchestration/loop_manager.py
+│   │   └── safe_point_*.py           # Delegates to orchestration/safe_points.py
+│   └── server.py                     # MCP server setup
+│
+└── claudedocs/                       # AI-specific docs
+    ├── nova-architecture.md          # Architecture documentation
+    └── nova-migration-notes.md       # Migration notes
+```
+
+**Why this structure?**
+- **3-layer architecture**: Tools (MCP interface) → Core (business logic) → Storage (persistence)
+- **1 file = 1 MCP function**: Each tool file has exactly one async function
+- **Core separation**: Business logic extracted from API layer for testability and reusability
+- **Clear boundaries**: Public API through `__init__.py`, internal implementation kept private
+
 ## MCP Tools (44 Total)
 
 ### CFA Core (20 tools)
