@@ -1,6 +1,17 @@
-"""MCP Tools for Context-First Architecture + Serena Integration.
+"""MCP Tools for Context-First Architecture v3 + Serena Integration + Nova.
 
-Consolidated to 44 tools (down from 51) for improved AI agent usability.
+74 tools total (44 core + 15 Knowledge Graph + 15 Agent Orchestration):
+- CFA Core (20): Project, contract, task, context management
+- Symbol (8): Semantic code operations via LSP
+- File (7): Enhanced file operations
+- Workflow (4): Meta-cognition and reflection
+- Memory (5): Persistent project knowledge
+- Knowledge Graph Core (9): Intelligent context retrieval with omission transparency
+- Knowledge Graph History (3): Git-based code archaeology
+- Business Rules (3): Human-confirmed tacit knowledge capture
+- Timeline (4): Snapshot management and rollback
+- Agent Orchestration (15): Nova multi-model AI orchestration (CFA v2 compliant)
+
 See README.md "MCP Design Philosophy" section for design decisions.
 """
 
@@ -69,6 +80,49 @@ from src.mcp_server.tools.workflow_reflect import workflow_reflect  # Consolidat
 from src.mcp_server.tools.workflow_summarize import workflow_summarize
 from src.mcp_server.tools.workflow_instructions import workflow_instructions
 
+# Knowledge Graph Tools (9 tools - CFA v3)
+from src.mcp_server.tools.kg_build import kg_build
+from src.mcp_server.tools.kg_status import kg_status
+from src.mcp_server.tools.kg_retrieve import kg_retrieve
+from src.mcp_server.tools.kg_expand import kg_expand
+from src.mcp_server.tools.kg_get import kg_get
+from src.mcp_server.tools.kg_search import kg_search
+from src.mcp_server.tools.kg_omitted import kg_omitted
+from src.mcp_server.tools.kg_related import kg_related
+from src.mcp_server.tools.kg_watch import kg_watch
+
+# Knowledge Graph History Tools (3 tools - Phase 2)
+from src.mcp_server.tools.kg_history import kg_history
+from src.mcp_server.tools.kg_blame import kg_blame
+from src.mcp_server.tools.kg_diff import kg_diff
+
+# Business Rules Tools (3 tools - Phase 3)
+from src.mcp_server.tools.rule_interpret import rule_interpret
+from src.mcp_server.tools.rule_confirm import rule_confirm
+from src.mcp_server.tools.rule_list import rule_list
+
+# Timeline Tools (3 tools - Phase 4)
+from src.mcp_server.tools.timeline_checkpoint import timeline_checkpoint
+from src.mcp_server.tools.timeline_rollback import timeline_rollback
+from src.mcp_server.tools.timeline_compare import timeline_compare, timeline_list
+
+# Agent Orchestration Tools (15 tools - Nova Integration - CFA v2 compliant)
+from src.mcp_server.tools.agent_route import agent_route
+from src.mcp_server.tools.agent_spawn import agent_spawn
+from src.mcp_server.tools.agent_status import agent_status
+from src.mcp_server.tools.objective_define import objective_define
+from src.mcp_server.tools.objective_check import objective_check
+from src.mcp_server.tools.objective_achieve_checkpoint import objective_achieve_checkpoint
+from src.mcp_server.tools.objective_record_iteration import objective_record_iteration
+from src.mcp_server.tools.objective_fail import objective_fail
+from src.mcp_server.tools.loop_configure import loop_configure
+from src.mcp_server.tools.loop_iterate import loop_iterate
+from src.mcp_server.tools.loop_stop import loop_stop
+from src.mcp_server.tools.loop_status import loop_status
+from src.mcp_server.tools.safe_point_create import safe_point_create
+from src.mcp_server.tools.safe_point_rollback import safe_point_rollback
+from src.mcp_server.tools.safe_point_list import safe_point_list
+
 __all__ = [
     # Project (3)
     "project_init",
@@ -125,4 +179,43 @@ __all__ = [
     "workflow_reflect",
     "workflow_summarize",
     "workflow_instructions",
+    # Knowledge Graph Core (8)
+    "kg_build",
+    "kg_status",
+    "kg_retrieve",
+    "kg_expand",
+    "kg_get",
+    "kg_search",
+    "kg_omitted",
+    "kg_related",
+    "kg_watch",
+    # Knowledge Graph History (3)
+    "kg_history",
+    "kg_blame",
+    "kg_diff",
+    # Business Rules (3)
+    "rule_interpret",
+    "rule_confirm",
+    "rule_list",
+    # Timeline (3)
+    "timeline_checkpoint",
+    "timeline_rollback",
+    "timeline_compare",
+    "timeline_list",
+    # Agent Orchestration - Nova Integration (15 functions - CFA v2 compliant)
+    "agent_route",
+    "agent_spawn",
+    "agent_status",
+    "objective_define",
+    "objective_check",
+    "objective_achieve_checkpoint",
+    "objective_record_iteration",
+    "objective_fail",
+    "loop_configure",
+    "loop_iterate",
+    "loop_stop",
+    "loop_status",
+    "safe_point_create",
+    "safe_point_rollback",
+    "safe_point_list",
 ]

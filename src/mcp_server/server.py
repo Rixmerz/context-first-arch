@@ -1,12 +1,17 @@
 """
-Context-First Architecture + Serena MCP Server
+Context-First Architecture + Serena MCP Server (CFA v3) + Nova Integration
 
-Unified server exposing 44 tools for AI-assisted development:
+Unified server exposing 68 tools for AI-assisted development:
 - CFA Core (20 tools): Project, contract, task, context management
 - Symbol Tools (8): Semantic code operations via LSP
 - File Tools (7): Enhanced file operations
 - Workflow Tools (4): Meta-cognition and reflection
 - Memory Tools (5): Persistent project knowledge
+- Knowledge Graph Core (8): Intelligent context retrieval with omission transparency
+- Knowledge Graph History (3): Git-based code archaeology
+- Business Rules (3): Human-confirmed tacit knowledge capture
+- Timeline (3): Snapshot management and rollback
+- Agent Orchestration (7): Nova integration for multi-model AI orchestration
 """
 
 import asyncio
@@ -92,6 +97,60 @@ from src.mcp_server.tools.workflow_onboard import workflow_onboard
 from src.mcp_server.tools.workflow_reflect import workflow_reflect
 from src.mcp_server.tools.workflow_summarize import workflow_summarize
 from src.mcp_server.tools.workflow_instructions import workflow_instructions
+
+# ============================================================================
+# Knowledge Graph Core Tools (9) - CFA v3
+# ============================================================================
+from src.mcp_server.tools.kg_build import kg_build
+from src.mcp_server.tools.kg_status import kg_status
+from src.mcp_server.tools.kg_retrieve import kg_retrieve
+from src.mcp_server.tools.kg_expand import kg_expand
+from src.mcp_server.tools.kg_get import kg_get
+from src.mcp_server.tools.kg_search import kg_search
+from src.mcp_server.tools.kg_omitted import kg_omitted
+from src.mcp_server.tools.kg_related import kg_related
+from src.mcp_server.tools.kg_watch import kg_watch
+
+# ============================================================================
+# Knowledge Graph History Tools (3) - Phase 2
+# ============================================================================
+from src.mcp_server.tools.kg_history import kg_history
+from src.mcp_server.tools.kg_blame import kg_blame
+from src.mcp_server.tools.kg_diff import kg_diff
+
+# ============================================================================
+# Business Rules Tools (4) - Phase 3
+# ============================================================================
+from src.mcp_server.tools.rule_interpret import rule_interpret
+from src.mcp_server.tools.rule_confirm import rule_confirm
+from src.mcp_server.tools.rule_list import rule_list
+from src.mcp_server.tools.rule_batch import rule_batch
+
+# ============================================================================
+# Timeline Tools (3) - Phase 4
+# ============================================================================
+from src.mcp_server.tools.timeline_checkpoint import timeline_checkpoint
+from src.mcp_server.tools.timeline_rollback import timeline_rollback
+from src.mcp_server.tools.timeline_compare import timeline_compare, timeline_list
+
+# ============================================================================
+# Agent Orchestration Tools - Nova Integration (15 MCP tools - CFA v2 compliant)
+# ============================================================================
+from src.mcp_server.tools.agent_route import agent_route
+from src.mcp_server.tools.agent_spawn import agent_spawn
+from src.mcp_server.tools.agent_status import agent_status
+from src.mcp_server.tools.objective_define import objective_define
+from src.mcp_server.tools.objective_check import objective_check
+from src.mcp_server.tools.objective_achieve_checkpoint import objective_achieve_checkpoint
+from src.mcp_server.tools.objective_record_iteration import objective_record_iteration
+from src.mcp_server.tools.objective_fail import objective_fail
+from src.mcp_server.tools.loop_configure import loop_configure
+from src.mcp_server.tools.loop_iterate import loop_iterate
+from src.mcp_server.tools.loop_stop import loop_stop
+from src.mcp_server.tools.loop_status import loop_status
+from src.mcp_server.tools.safe_point_create import safe_point_create
+from src.mcp_server.tools.safe_point_rollback import safe_point_rollback
+from src.mcp_server.tools.safe_point_list import safe_point_list
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -772,6 +831,506 @@ TOOLS = [
             "required": ["project_path"]
         }
     ),
+
+    # ========================================================================
+    # KNOWLEDGE GRAPH TOOLS (8) - CFA v3
+    # ========================================================================
+    Tool(
+        name="kg.build",
+        description="Build/update Project Knowledge Graph for intelligent retrieval",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "project_path": {"type": "string", "description": "Path to CFA project"},
+                "incremental": {"type": "boolean", "description": "Only update changed files"},
+                "changed_files": {"type": "array", "items": {"type": "string"}, "description": "Files that changed (for incremental)"}
+            },
+            "required": ["project_path"]
+        }
+    ),
+    Tool(
+        name="kg.status",
+        description="Get Knowledge Graph status and statistics",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "project_path": {"type": "string", "description": "Path to CFA project"}
+            },
+            "required": ["project_path"]
+        }
+    ),
+    Tool(
+        name="kg.retrieve",
+        description="[PRIMARY] Get task-relevant context with full omission transparency",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "project_path": {"type": "string", "description": "Path to CFA project"},
+                "task": {"type": "string", "description": "What you're trying to accomplish"},
+                "token_budget": {"type": "number", "description": "Maximum tokens (default 30000)"},
+                "include_types": {"type": "array", "items": {"type": "string"}, "description": "Chunk types to include"},
+                "exclude_types": {"type": "array", "items": {"type": "string"}, "description": "Chunk types to exclude"},
+                "include_tests": {"type": "boolean", "description": "Include related tests (default true)"},
+                "compression": {"type": "number", "description": "0=full, 1=no_comments, 2=signatures"},
+                "symbols": {"type": "array", "items": {"type": "string"}, "description": "Specific symbols to include"},
+                "files": {"type": "array", "items": {"type": "string"}, "description": "Specific files to include"},
+                "auto_build": {"type": "boolean", "description": "Auto-build graph if needed (default true)"}
+            },
+            "required": ["project_path", "task"]
+        }
+    ),
+    Tool(
+        name="kg.expand",
+        description="Expand context from a chunk (dependencies, dependents, tests)",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "project_path": {"type": "string", "description": "Path to CFA project"},
+                "chunk_id": {"type": "string", "description": "ID of chunk to expand from"},
+                "expansion_type": {"type": "string", "enum": ["dependencies", "dependents", "tests", "all"], "description": "What to expand"},
+                "token_budget": {"type": "number", "description": "Maximum tokens (default 5000)"}
+            },
+            "required": ["project_path", "chunk_id"]
+        }
+    ),
+    Tool(
+        name="kg.get",
+        description="Get specific chunks by ID",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "project_path": {"type": "string", "description": "Path to CFA project"},
+                "chunk_ids": {"type": "array", "items": {"type": "string"}, "description": "List of chunk IDs to retrieve"}
+            },
+            "required": ["project_path", "chunk_ids"]
+        }
+    ),
+    Tool(
+        name="kg.search",
+        description="Search Knowledge Graph using BM25 ranking",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "project_path": {"type": "string", "description": "Path to CFA project"},
+                "query": {"type": "string", "description": "Search query"},
+                "chunk_types": {"type": "array", "items": {"type": "string"}, "description": "Filter by chunk types"},
+                "limit": {"type": "number", "description": "Maximum results (default 20)"}
+            },
+            "required": ["project_path", "query"]
+        }
+    ),
+    Tool(
+        name="kg.omitted",
+        description="Analyze omissions from kg.retrieve (what was NOT loaded)",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "omitted_chunks": {"type": "array", "description": "omitted_chunks from kg.retrieve result"},
+                "filter_reason": {"type": "string", "description": "Filter by omission reason"},
+                "filter_type": {"type": "string", "description": "Filter by chunk type"},
+                "sort_by": {"type": "string", "enum": ["relevance", "tokens", "type"], "description": "Sort order"}
+            },
+            "required": ["omitted_chunks"]
+        }
+    ),
+    Tool(
+        name="kg.related",
+        description="Find chunks related to a specific chunk",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "project_path": {"type": "string", "description": "Path to CFA project"},
+                "chunk_id": {"type": "string", "description": "ID of chunk to find relations for"},
+                "relation_types": {"type": "array", "items": {"type": "string"}, "description": "Filter relations: tests, dependencies, dependents, commits, rules"}
+            },
+            "required": ["project_path", "chunk_id"]
+        }
+    ),
+
+    # ========================================================================
+    # KNOWLEDGE GRAPH HISTORY TOOLS (3) - Phase 2
+    # ========================================================================
+    Tool(
+        name="kg.history",
+        description="Get git commits that modified a chunk or file",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "project_path": {"type": "string", "description": "Path to CFA project"},
+                "chunk_id": {"type": "string", "description": "Chunk ID to get history for"},
+                "file_path": {"type": "string", "description": "Direct file path (alternative)"},
+                "limit": {"type": "number", "description": "Maximum commits (default 20)"},
+                "since": {"type": "string", "description": "Only commits since date (e.g., '1 week ago')"},
+                "include_diff": {"type": "boolean", "description": "Include diff content"}
+            },
+            "required": ["project_path"]
+        }
+    ),
+    Tool(
+        name="kg.blame",
+        description="Find who wrote specific code and why (links lines to commits)",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "project_path": {"type": "string", "description": "Path to CFA project"},
+                "chunk_id": {"type": "string", "description": "Chunk ID to blame"},
+                "file_path": {"type": "string", "description": "Direct file path"},
+                "line_start": {"type": "number", "description": "Start line (1-indexed)"},
+                "line_end": {"type": "number", "description": "End line"},
+                "group_by_commit": {"type": "boolean", "description": "Group by commit (default true)"}
+            },
+            "required": ["project_path"]
+        }
+    ),
+    Tool(
+        name="kg.diff",
+        description="Compare code between two commits",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "project_path": {"type": "string", "description": "Path to CFA project"},
+                "commit_a": {"type": "string", "description": "First commit (older)"},
+                "commit_b": {"type": "string", "description": "Second commit (newer, default HEAD)"},
+                "file_path": {"type": "string", "description": "Focus on specific file"},
+                "chunk_id": {"type": "string", "description": "Focus on chunk's file"},
+                "context_lines": {"type": "number", "description": "Context lines (default 3)"}
+            },
+            "required": ["project_path", "commit_a"]
+        }
+    ),
+
+    # ========================================================================
+    # BUSINESS RULES TOOLS (3) - Phase 3
+    # ========================================================================
+    Tool(
+        name="rule.interpret",
+        description="AI interprets business rules from code (proposes for human review)",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "project_path": {"type": "string", "description": "Path to CFA project"},
+                "chunk_id": {"type": "string", "description": "Chunk ID to interpret rules from"},
+                "file_path": {"type": "string", "description": "Direct file path to analyze"},
+                "symbol_name": {"type": "string", "description": "Specific symbol to focus on"},
+                "auto_propose": {"type": "boolean", "description": "Auto-save proposed rules (default true)"},
+                "categories": {"type": "array", "items": {"type": "string"}, "description": "Filter categories: validation, authorization, business_logic, constraint"}
+            },
+            "required": ["project_path"]
+        }
+    ),
+    Tool(
+        name="rule.confirm",
+        description="[HUMAN] Confirm, correct, or reject proposed business rules",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "project_path": {"type": "string", "description": "Path to CFA project"},
+                "rule_id": {"type": "string", "description": "ID of rule to act on"},
+                "action": {"type": "string", "enum": ["confirm", "correct", "reject"], "description": "Action to take"},
+                "correction": {"type": "string", "description": "If action=correct, the corrected rule text"},
+                "rejection_reason": {"type": "string", "description": "If action=reject, why it was rejected"},
+                "confirmed_by": {"type": "string", "description": "Who is confirming (default 'human')"}
+            },
+            "required": ["project_path", "rule_id", "action"]
+        }
+    ),
+    Tool(
+        name="rule.list",
+        description="List business rules with filtering",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "project_path": {"type": "string", "description": "Path to CFA project"},
+                "status": {"type": "string", "description": "Filter: proposed, confirmed, corrected, rejected"},
+                "category": {"type": "string", "description": "Filter: validation, authorization, business_logic, etc."},
+                "file_path": {"type": "string", "description": "Filter by source file"},
+                "chunk_id": {"type": "string", "description": "Get rules for specific chunk"},
+                "pending_only": {"type": "boolean", "description": "Only show rules awaiting confirmation"},
+                "limit": {"type": "number", "description": "Maximum rules (default 50)"}
+            },
+            "required": ["project_path"]
+        }
+    ),
+    Tool(
+        name="rule.batch",
+        description="Batch confirm or reject multiple business rules at once",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "project_path": {"type": "string", "description": "Path to CFA project"},
+                "rule_ids": {"type": "array", "items": {"type": "string"}, "description": "List of rule IDs to process"},
+                "action": {"type": "string", "enum": ["confirm", "reject"], "description": "Action: confirm or reject"},
+                "reason": {"type": "string", "description": "Reason (required for reject)"}
+            },
+            "required": ["project_path", "rule_ids", "action"]
+        }
+    ),
+
+    # ========================================================================
+    # TIMELINE TOOLS (3) - Phase 4
+    # ========================================================================
+    Tool(
+        name="timeline.checkpoint",
+        description="[SAFETY] Create snapshot before risky operations",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "project_path": {"type": "string", "description": "Path to CFA project"},
+                "name": {"type": "string", "description": "Short name (e.g., 'before-refactor')"},
+                "description": {"type": "string", "description": "What this checkpoint captures"},
+                "snapshot_type": {"type": "string", "enum": ["user", "agent"], "description": "'user' (manual) or 'agent' (automatic)"},
+                "tags": {"type": "array", "items": {"type": "string"}, "description": "Tags for categorization"}
+            },
+            "required": ["project_path", "name"]
+        }
+    ),
+    Tool(
+        name="timeline.rollback",
+        description="[CAUTION] Return to previous snapshot state",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "project_path": {"type": "string", "description": "Path to CFA project"},
+                "snapshot_id": {"type": "string", "description": "ID of snapshot to rollback to"},
+                "mode": {"type": "string", "enum": ["preview", "execute"], "description": "'preview' or 'execute'"},
+                "include_git": {"type": "boolean", "description": "Also reset git (dangerous!)"}
+            },
+            "required": ["project_path", "snapshot_id"]
+        }
+    ),
+    Tool(
+        name="timeline.compare",
+        description="Compare two snapshots to see what changed",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "project_path": {"type": "string", "description": "Path to CFA project"},
+                "snapshot_a": {"type": "string", "description": "First snapshot ID (older)"},
+                "snapshot_b": {"type": "string", "description": "Second snapshot ID (newer, or current)"},
+                "include_details": {"type": "boolean", "description": "Include file-level details"}
+            },
+            "required": ["project_path"]
+        }
+    ),
+
+    # ========================================================================
+    # AGENT ORCHESTRATION TOOLS - Nova Integration (15 MCP tools - CFA v2)
+    # ========================================================================
+    Tool(
+        name="agent.route",
+        description="[NOVA] Analyze task and decide which model should handle it (Haiku/Sonnet/Opus)",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "task": {"type": "string", "description": "Task description to analyze"},
+                "context": {"type": "string", "description": "Optional project/codebase context"},
+                "project_path": {"type": "string", "description": "Optional CFA project path"},
+                "force_model": {"type": "string", "enum": ["haiku", "sonnet", "opus"], "description": "Force specific model"}
+            },
+            "required": ["task"]
+        }
+    ),
+    Tool(
+        name="agent.spawn",
+        description="[NOVA] Spawn a model instance to execute a task via Claude Code Task Tool",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "model": {"type": "string", "enum": ["haiku", "sonnet", "opus"], "description": "Model type"},
+                "task": {"type": "string", "description": "Task for the model to execute"},
+                "context": {"type": "string", "description": "Optional context to provide"},
+                "project_path": {"type": "string", "description": "Optional CFA project path"},
+                "timeout": {"type": "number", "description": "Timeout in ms (default 120000)"},
+                "max_tokens": {"type": "number", "description": "Max tokens (default 8000)"},
+                "background": {"type": "boolean", "description": "Run in background mode"},
+                "tags": {"type": "array", "items": {"type": "string"}, "description": "Tags for tracking"}
+            },
+            "required": ["model", "task"]
+        }
+    ),
+    Tool(
+        name="agent.status",
+        description="[NOVA] Get status of model instances",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "instance_id": {"type": "string", "description": "Specific instance ID to query"},
+                "model": {"type": "string", "enum": ["haiku", "sonnet", "opus"], "description": "Filter by model"},
+                "status": {"type": "string", "enum": ["pending", "running", "completed", "failed"], "description": "Filter by status"},
+                "tags": {"type": "array", "items": {"type": "string"}, "description": "Filter by tags"},
+                "include_completed": {"type": "boolean", "description": "Include completed instances"}
+            },
+            "required": []
+        }
+    ),
+    Tool(
+        name="objective.define",
+        description="[NOVA] Define end-to-end objective with success criteria and checkpoints",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "description": {"type": "string", "description": "What needs to be accomplished"},
+                "success_criteria": {"type": "array", "items": {"type": "string"}, "description": "Specific criteria for success"},
+                "checkpoints": {"type": "array", "items": {"type": "string"}, "description": "Milestone descriptions"},
+                "max_iterations": {"type": "number", "description": "Max iterations before failure (default 10)"},
+                "project_path": {"type": "string", "description": "Optional CFA project path"},
+                "tags": {"type": "array", "items": {"type": "string"}, "description": "Tags for organization"},
+                "auto_activate": {"type": "boolean", "description": "Make this the active objective (default true)"}
+            },
+            "required": ["description"]
+        }
+    ),
+    Tool(
+        name="objective.check",
+        description="[NOVA] Check progress on objectives and checkpoints",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "objective_id": {"type": "string", "description": "Specific objective (uses active if not provided)"},
+                "project_path": {"type": "string", "description": "Optional CFA project path"}
+            },
+            "required": []
+        }
+    ),
+    Tool(
+        name="objective.achieve_checkpoint",
+        description="[NOVA] Mark a checkpoint as achieved within an objective",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "checkpoint_id": {"type": "string", "description": "ID of checkpoint to mark as achieved"},
+                "objective_id": {"type": "string", "description": "Optional objective ID (uses active if not provided)"},
+                "notes": {"type": "string", "description": "Notes about checkpoint achievement"},
+                "project_path": {"type": "string", "description": "Optional CFA project path"}
+            },
+            "required": ["checkpoint_id"]
+        }
+    ),
+    Tool(
+        name="objective.record_iteration",
+        description="[NOVA] Record an iteration attempt for an objective",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "objective_id": {"type": "string", "description": "Optional objective ID (uses active if not provided)"},
+                "summary": {"type": "string", "description": "Summary of what was attempted this iteration"},
+                "project_path": {"type": "string", "description": "Optional CFA project path"}
+            },
+            "required": []
+        }
+    ),
+    Tool(
+        name="objective.fail",
+        description="[NOVA] Mark an objective as failed",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "reason": {"type": "string", "description": "Reason for failure"},
+                "objective_id": {"type": "string", "description": "Optional objective ID (uses active if not provided)"},
+                "project_path": {"type": "string", "description": "Optional CFA project path"}
+            },
+            "required": ["reason"]
+        }
+    ),
+    Tool(
+        name="loop.configure",
+        description="[NOVA] Configure a new iterative execution loop",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "task": {"type": "string", "description": "Task to work on iteratively"},
+                "condition_type": {"type": "string", "enum": ["objective_complete", "all_checkpoints", "manual"], "description": "When to stop"},
+                "max_iterations": {"type": "number", "description": "Max iterations (default 10)"},
+                "iteration_delay_ms": {"type": "number", "description": "Delay between iterations (default 1000)"},
+                "enable_safe_points": {"type": "boolean", "description": "Create commits after each iteration (default true)"},
+                "escalation_threshold": {"type": "number", "description": "Iterations before model escalation (default 5)"},
+                "project_path": {"type": "string", "description": "Optional CFA project path"},
+                "objective_id": {"type": "string", "description": "Objective to track (uses active if not provided)"}
+            },
+            "required": ["task"]
+        }
+    ),
+    Tool(
+        name="loop.iterate",
+        description="[NOVA] Advance to the next iteration of a loop",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "loop_id": {"type": "string", "description": "ID of the loop to iterate"},
+                "iteration_result": {"type": "string", "description": "Summary of previous iteration"},
+                "files_changed": {"type": "array", "items": {"type": "string"}, "description": "Files changed in iteration"},
+                "tokens_used": {"type": "number", "description": "Tokens used in previous iteration"},
+                "project_path": {"type": "string", "description": "Optional CFA project path"}
+            },
+            "required": ["loop_id"]
+        }
+    ),
+    Tool(
+        name="loop.stop",
+        description="[NOVA] Stop a running loop",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "loop_id": {"type": "string", "description": "ID of the loop to stop"},
+                "reason": {"type": "string", "description": "Reason for stopping"},
+                "project_path": {"type": "string", "description": "Optional CFA project path"}
+            },
+            "required": ["loop_id"]
+        }
+    ),
+    Tool(
+        name="loop.status",
+        description="[NOVA] Get status of loops",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "loop_id": {"type": "string", "description": "Optional specific loop ID to query"},
+                "project_path": {"type": "string", "description": "Optional CFA project path"}
+            },
+            "required": []
+        }
+    ),
+    Tool(
+        name="safe_point.create",
+        description="[NOVA] Create a git safe point as restore point",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "project_path": {"type": "string", "description": "Path to project root (must be git repo)"},
+                "task_summary": {"type": "string", "description": "What was accomplished"},
+                "files_changed": {"type": "array", "items": {"type": "string"}, "description": "Specific files to commit"},
+                "include_untracked": {"type": "boolean", "description": "Include untracked files (default true)"},
+                "dry_run": {"type": "boolean", "description": "Preview without committing"},
+                "prefix": {"type": "string", "description": "Commit message prefix (default '[Nova]')"}
+            },
+            "required": ["project_path", "task_summary"]
+        }
+    ),
+    Tool(
+        name="safe_point.rollback",
+        description="[NOVA] Rollback to a previous safe point",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "project_path": {"type": "string", "description": "Path to project root"},
+                "safe_point_id": {"type": "string", "description": "ID of safe point to rollback to (optional, uses latest)"},
+                "mode": {"type": "string", "enum": ["preview", "execute"], "description": "preview or execute (default preview)"}
+            },
+            "required": ["project_path"]
+        }
+    ),
+    Tool(
+        name="safe_point.list",
+        description="[NOVA] List available safe points",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "project_path": {"type": "string", "description": "Optional project path (uses cwd if not provided)"},
+                "limit": {"type": "number", "description": "Maximum number of safe points to return (default 10)"}
+            },
+            "required": []
+        }
+    ),
 ]
 
 
@@ -834,6 +1393,45 @@ TOOL_MAP = {
     "workflow.reflect": workflow_reflect,
     "workflow.summarize": workflow_summarize,
     "workflow.instructions": workflow_instructions,
+    # Knowledge Graph Core (9 - CFA v3)
+    "kg.build": kg_build,
+    "kg.status": kg_status,
+    "kg.retrieve": kg_retrieve,
+    "kg.expand": kg_expand,
+    "kg.get": kg_get,
+    "kg.search": kg_search,
+    "kg.omitted": kg_omitted,
+    "kg.related": kg_related,
+    "kg.watch": kg_watch,
+    # Knowledge Graph History (3 - Phase 2)
+    "kg.history": kg_history,
+    "kg.blame": kg_blame,
+    "kg.diff": kg_diff,
+    # Business Rules (4 - Phase 3)
+    "rule.interpret": rule_interpret,
+    "rule.confirm": rule_confirm,
+    "rule.list": rule_list,
+    "rule.batch": rule_batch,
+    # Timeline (3 - Phase 4)
+    "timeline.checkpoint": timeline_checkpoint,
+    "timeline.rollback": timeline_rollback,
+    "timeline.compare": timeline_compare,
+    # Agent Orchestration - Nova Integration (15 - CFA v2 compliant)
+    "agent.route": agent_route,
+    "agent.spawn": agent_spawn,
+    "agent.status": agent_status,
+    "objective.define": objective_define,
+    "objective.check": objective_check,
+    "objective.achieve_checkpoint": objective_achieve_checkpoint,
+    "objective.record_iteration": objective_record_iteration,
+    "objective.fail": objective_fail,
+    "loop.configure": loop_configure,
+    "loop.iterate": loop_iterate,
+    "loop.stop": loop_stop,
+    "loop.status": loop_status,
+    "safe_point.create": safe_point_create,
+    "safe_point.rollback": safe_point_rollback,
+    "safe_point.list": safe_point_list,
 }
 
 
@@ -872,7 +1470,7 @@ async def main():
     """Run the MCP server."""
     from mcp.server.stdio import stdio_server
 
-    logger.info(f"Starting CFA + Serena MCP Server with {len(TOOLS)} tools")
+    logger.info(f"Starting CFA v3 MCP Server with {len(TOOLS)} tools (including Knowledge Graph)")
 
     async with stdio_server() as (read_stream, write_stream):
         await server.run(
