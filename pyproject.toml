@@ -4,12 +4,12 @@ build-backend = "hatchling.build"
 
 [project]
 name = "context-first-architecture"
-version = "0.2.0"
-description = "Context-First Architecture + Serena: Complete AI-assisted development framework with semantic code analysis"
+version = "0.3.0"
+description = "Context-First Architecture v3 + Serena: 61-tool AI-assisted development framework with Knowledge Graph, git history, business rules, and timeline snapshots"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
-keywords = ["llm", "architecture", "mcp", "claude", "ai", "development", "lsp", "semantic", "serena"]
+keywords = ["llm", "architecture", "mcp", "claude", "ai", "development", "lsp", "semantic", "serena", "knowledge-graph", "rag"]
 authors = [
     { name = "Context-First Team" }
 ]
@@ -27,7 +27,9 @@ dependencies = [
     "mcp>=0.1.0",
     "pydantic>=2.0.0",
     # LSP/Semantic analysis (Serena integration)
-    "multilspy>=0.1.0",
+    "multilspy>=0.0.1",
+    # Knowledge Graph search (CFA v3)
+    "rank-bm25>=0.2.2",
 ]
 
 [project.optional-dependencies]
@@ -42,6 +44,9 @@ lsp = [
     "python-lsp-server>=1.9.0",
     "pylsp-mypy>=0.6.0",
 ]
+watcher = [
+    "watchdog>=3.0.0",
+]
 dev = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
@@ -49,7 +54,7 @@ dev = [
     "ruff>=0.1.0",
 ]
 all = [
-    "context-first-architecture[tree-sitter,lsp,dev]",
+    "context-first-architecture[tree-sitter,lsp,watcher,dev]",
 ]
 
 [project.scripts]

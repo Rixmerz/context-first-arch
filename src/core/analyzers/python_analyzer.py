@@ -12,6 +12,7 @@ from src.core.analyzers.base import (
     LanguageAnalyzer,
     FileAnalysis,
     FunctionInfo,
+    ClassInfo,
     ImportInfo,
 )
 
@@ -46,6 +47,7 @@ class PythonAnalyzer(LanguageAnalyzer):
             )
 
         functions = self._extract_functions(tree, source, file_path)
+        classes = self._extract_classes(tree, source, file_path)
         imports = self._extract_imports(tree)
         exports = self._extract_exports(tree)
         types = self._extract_types(tree)
@@ -55,6 +57,7 @@ class PythonAnalyzer(LanguageAnalyzer):
             path=str(file_path),
             language=self.language,
             functions=functions,
+            classes=classes,
             imports=imports,
             exports=exports,
             types=types,
@@ -107,6 +110,62 @@ class PythonAnalyzer(LanguageAnalyzer):
                 ))
 
         return functions
+
+    def _extract_classes(
+        self,
+        tree: ast.AST,
+        source: str,
+        file_path: Path
+    ) -> List[ClassInfo]:
+        """Extract all class definitions (top-level only)."""
+        classes = []
+        source_lines = source.split("\n")
+
+        for node in ast.iter_child_nodes(tree):
+            if isinstance(node, ast.ClassDef):
+                # Get base classes
+                base_classes = []
+                for base in node.bases:
+                    try:
+                        base_classes.append(ast.unparse(base))
+                    except Exception:
+                        pass
+
+                # Build signature string
+                bases_str = ", ".join(base_classes)
+                sig = f"class {node.name}({bases_str})" if bases_str else f"class {node.name}"
+
+                # Get docstring
+                docstring = ast.get_docstring(node)
+
+                # Get method names (direct children only)
+                methods = []
+                for child in node.body:
+                    if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                        methods.append(child.name)
+
+                # Get decorators
+                decorators = []
+                for decorator in node.decorator_list:
+                    try:
+                        decorators.append(ast.unparse(decorator))
+                    except Exception:
+                        pass
+
+                classes.append(ClassInfo(
+                    name=node.name,
+                    file_path=str(file_path),
+                    start_line=node.lineno,
+                    end_line=node.end_lineno or node.lineno,
+                    signature=sig,
+                    docstring=docstring,
+                    base_classes=base_classes,
+                    methods=methods,
+                    is_exported=not node.name.startswith("_"),
+                    decorators=decorators
+                ))
+
+        return classes
 
     def _get_parameters(self, node: ast.FunctionDef) -> List[Dict[str, str]]:
         """Extract function parameters with types."""
