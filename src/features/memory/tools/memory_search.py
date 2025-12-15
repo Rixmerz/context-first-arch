@@ -7,7 +7,7 @@ Search project learnings in persistent memory.
 from typing import Any, Dict, List, Optional
 from pathlib import Path
 
-from src.core.memory_store import MemoryStore
+from src.features.memory import MemoryStore
 
 
 async def memory_search(

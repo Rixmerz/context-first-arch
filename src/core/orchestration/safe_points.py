@@ -520,7 +520,7 @@ class SafePointManager:
         """
         try:
             from pathlib import Path as PathLib
-            from src.core.memory_store import MemoryStore
+            from src.features.memory import MemoryStore
 
             if safe_point.project_path:
                 memory = MemoryStore(PathLib(safe_point.project_path))

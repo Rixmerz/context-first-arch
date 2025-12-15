@@ -49,12 +49,14 @@ from src.mcp_server.tools.docs_generate import docs_generate
 from src.mcp_server.tools.map_auto_update import map_auto_update
 from src.mcp_server.tools.test_coverage_map import test_coverage_map
 
-# Memory Tools (5 tools - consolidated from 6)
-from src.mcp_server.tools.memory_set import memory_set  # Now includes append mode (was memory_edit)
-from src.mcp_server.tools.memory_get import memory_get
-from src.mcp_server.tools.memory_search import memory_search
-from src.mcp_server.tools.memory_list import memory_list
-from src.mcp_server.tools.memory_delete import memory_delete
+# Memory Tools (5 tools - from features/memory - CFA v2 feature-based structure)
+from src.features.memory.tools import (
+    memory_set,      # Includes append mode (was memory_edit)
+    memory_get,
+    memory_search,
+    memory_list,
+    memory_delete,
+)
 
 # Symbol Tools (8 tools - consolidated from 9)
 from src.mcp_server.tools.symbol_find import symbol_find

@@ -7,7 +7,7 @@ Delete a stored memory.
 from typing import Any, Dict
 from pathlib import Path
 
-from src.core.memory_store import MemoryStore
+from src.features.memory import MemoryStore
 
 
 async def memory_delete(

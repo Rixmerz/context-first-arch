@@ -7,7 +7,7 @@ Retrieve project learnings from persistent memory.
 from typing import Any, Dict
 from pathlib import Path
 
-from src.core.memory_store import MemoryStore
+from src.features.memory import MemoryStore
 
 
 async def memory_get(
@@ -59,7 +59,7 @@ async def memory_get(
             "value": memory.value,
             "timestamp": memory.timestamp,
             "tags": memory.tags,
-            "message": f"✓ Retrieved memory '{key}'"
+            "message": f"Retrieved memory '{key}'"
         }
 
     except Exception as e:
