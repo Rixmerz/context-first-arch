@@ -2,6 +2,9 @@
 MCP Tool: memory.search
 
 Search project learnings in persistent memory.
+
+RECOMMENDED: Call this tool early in tasks to check for previous decisions,
+patterns, or context that may affect your current work.
 """
 
 from typing import Any, Dict, List, Optional
@@ -17,40 +20,73 @@ async def memory_search(
     limit: int = 50
 ) -> Dict[str, Any]:
     """
-    Search memories by query and/or tags.
+    [RECOMMENDED - EARLY IN TASK] Search for previous decisions and context.
+
+    <RULES>
+    1. CALL EARLY in tasks to check for existing decisions before making new ones
+    2. Search by TAGS for category-based retrieval (architecture, bug-fix, etc.)
+    3. Search by QUERY for content-based lookup
+    4. REVIEW results before making decisions that might contradict prior work
+    5. Use with kg.retrieve - memory for decisions, kg for code context
+    </RULES>
+
+    <WHEN_TO_USE>
+    ✅ At task start - check if similar work was done before
+    ✅ Before architectural decisions - find previous ADRs
+    ✅ When debugging - check if bug was seen before
+    ✅ When implementing - find established patterns
+    ✅ Before ending session - find session summaries to continue from
+    </WHEN_TO_USE>
+
+    <COMMON_SEARCH_PATTERNS>
+    Find previous architectural decisions:
+        memory.search(tags=["architecture", "adr"])
+
+    Find how bugs were fixed before:
+        memory.search(query="race condition", tags=["bug-fix"])
+
+    Find established patterns:
+        memory.search(tags=["pattern"])
+
+    Find session summaries to continue work:
+        memory.search(tags=["session-summary"])
+
+    Find all decisions about a topic:
+        memory.search(query="authentication")
+    </COMMON_SEARCH_PATTERNS>
+
+    <RELATIONSHIP_WITH_OTHER_TOOLS>
+    - Use BEFORE kg.retrieve → Check if prior context exists
+    - Use AFTER making decisions → Store new decisions with memory.set
+    - Use BEFORE ending session → Review what was accomplished
+    </RELATIONSHIP_WITH_OTHER_TOOLS>
 
     Args:
         project_path: Path to CFA project
         query: Text to search in memory values (case-insensitive)
-        tags: Optional list of tags to filter by (AND logic)
-        limit: Maximum number of results (default: 50)
+        tags: Tags to filter by (AND logic) - common tags:
+            - "architecture" → Design decisions
+            - "adr" → Architecture Decision Records
+            - "bug-fix" → Bug solutions
+            - "pattern" → Code patterns
+            - "session-summary" → Session summaries
+        limit: Maximum results (default: 50)
 
     Returns:
-        Dictionary with:
-            - success: Boolean
-            - results: List of matching memories
-            - count: Number of results
-            - stats: Memory store statistics
+        - results: List of {key, value, tags, timestamp}
+        - count: Number of results
+        - stats: Memory store statistics
 
-    Example:
-        # Search by query
-        result = await memory_search(
-            project_path="/projects/my-app",
-            query="authentication"
-        )
+    <WORKFLOW>
+    1. memory.search(tags=["relevant-tag"]) → Find prior decisions
+    2. Review results → Don't contradict without good reason
+    3. kg.retrieve(task="...") → Get code context
+    4. Do work → Make decisions
+    5. memory.set(key="...", value="...", tags=[...]) → Store new learnings
+    </WORKFLOW>
 
-        # Search by tags
-        result = await memory_search(
-            project_path="/projects/my-app",
-            tags=["architecture", "security"]
-        )
-
-        # Combined search
-        result = await memory_search(
-            project_path="/projects/my-app",
-            query="JWT",
-            tags=["auth"]
-        )
+    IMPORTANT: Previous sessions stored valuable context in memory.
+    Searching first prevents repeating work or contradicting decisions.
     """
     try:
         path = Path(project_path)

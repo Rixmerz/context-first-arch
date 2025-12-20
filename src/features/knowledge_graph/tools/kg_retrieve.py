@@ -2,6 +2,9 @@
 MCP Tool: kg.retrieve
 
 [PRIMARY] Retrieve task-relevant context with full omission transparency.
+
+OBLIGATORY: This tool MUST be called at the START of EVERY task to obtain
+project context. Without it, you have NO visibility into the codebase.
 """
 
 from typing import Any, Dict, List, Optional
@@ -23,70 +26,80 @@ async def kg_retrieve(
     auto_build: bool = True
 ) -> Dict[str, Any]:
     """
-    [PRIMARY] Retrieve task-relevant context with full omission transparency.
+    [OBLIGATORY - FIRST CALL] Retrieve task-relevant context from Knowledge Graph.
 
-    This is the main tool for loading context from the Knowledge Graph.
-    It uses BM25 search + graph traversal to find relevant chunks,
-    and ALWAYS tells you what was omitted and why.
+    <RULES>
+    1. ALWAYS call kg.retrieve FIRST before any other action on a new task
+    2. DO NOT attempt to write or modify code without first calling this tool
+    3. DO NOT assume you know the codebase structure without calling this tool
+    4. Call with a DESCRIPTIVE task parameter that explains your intent
+    5. After receiving context, REVIEW omission_summary before proceeding
+    6. Use kg.expand if critical files were omitted due to token budget
+    7. For follow-up questions in same task, you may skip if context is fresh
+    </RULES>
+
+    <WHEN_TO_USE>
+    ✅ ALWAYS at the START of a new task or user request
+    ✅ When user asks about code you haven't seen yet
+    ✅ When debugging - get full context of affected modules
+    ✅ When implementing features - understand existing patterns
+    ✅ After long conversations - refresh context if needed
+    </WHEN_TO_USE>
+
+    <WHEN_NOT_TO_USE>
+    ❌ When context was just retrieved in the same turn
+    ❌ For simple follow-up questions about already-loaded code
+    ❌ When user explicitly provides all needed code in their message
+    </WHEN_NOT_TO_USE>
+
+    <GOOD_TASK_EXAMPLES>
+    ✓ "Understand the authentication flow and how JWT tokens are validated"
+    ✓ "Find all API endpoints related to user management"
+    ✓ "Debug the payment processing error in checkout"
+    ✓ "Refactor the database connection handling"
+    </GOOD_TASK_EXAMPLES>
+
+    <BAD_TASK_EXAMPLES>
+    ✗ "code" (too vague - won't find relevant context)
+    ✗ "everything" (wastes token budget)
+    ✗ "fix bug" (doesn't specify which bug or area)
+    </BAD_TASK_EXAMPLES>
 
     Args:
-        project_path: Path to CFA project
-        task: What you're trying to accomplish (natural language)
+        project_path: Path to CFA project (REQUIRED)
+        task: What you're trying to accomplish - BE SPECIFIC (REQUIRED)
         token_budget: Maximum tokens to return (default 30000)
-        include_types: Chunk types to include (e.g., ["function", "test"])
-        exclude_types: Chunk types to exclude (e.g., ["log", "error"])
+            - Use 15000-20000 for focused tasks
+            - Use 25000-30000 for broad exploration
+        include_types: Chunk types to include (e.g., ["function", "class", "test"])
+        exclude_types: Chunk types to exclude (e.g., ["log", "comment"])
         include_tests: Include related test chunks (default True)
-        compression: 0=full, 1=no_comments, 2=signature+docstring, 3=signature_only
+        compression: Compression level:
+            - 0 = full code (default)
+            - 1 = no comments
+            - 2 = signature + docstring only
+            - 3 = signature only
         symbols: Specific symbols to prioritize (e.g., ["authenticate", "User"])
         files: Specific files to prioritize (e.g., ["src/auth.py"])
         auto_build: Auto-build graph if needed (default True)
 
     Returns:
-        Dictionary with:
-            - success: Boolean
-            - context_markdown: Full context in markdown format
-            - stats: {chunks_loaded, chunks_omitted, tokens_used, ...}
-            - omission_summary: Human-readable omission summary
-            - omission_by_type: Omissions grouped by chunk type
-            - omission_by_reason: Omissions grouped by reason
-            - available_expansions: What can be loaded with kg.expand
-            - related_tests: Test chunk IDs for loaded code
-            - related_commits: Commit chunk IDs for loaded code
+        - context_markdown: Full context in markdown format (USE THIS)
+        - omission_summary: What was NOT loaded (CHECK THIS)
+        - available_expansions: Omitted chunks you can load with kg.expand
+        - stats: {chunks_loaded, chunks_omitted, tokens_used}
+        - related_tests: Test IDs for loaded code
 
-    Examples:
-        # Basic retrieval
-        result = await kg_retrieve(
-            project_path="/projects/my-app",
-            task="Fix the authentication bug in the login function"
-        )
+    <WORKFLOW>
+    1. kg.retrieve(task="your descriptive task") → Get initial context
+    2. Check omission_summary → See what's missing
+    3. If critical code was omitted → Use kg.expand(chunk_ids=[...])
+    4. Now you have visibility → Proceed with implementation
+    5. If you make significant decisions → Use memory.set to record them
+    </WORKFLOW>
 
-        # Focused retrieval with symbols
-        result = await kg_retrieve(
-            project_path="/projects/my-app",
-            task="Refactor user authentication",
-            symbols=["authenticate", "validate_token", "User"],
-            include_tests=True
-        )
-
-        # Minimal retrieval (signatures only)
-        result = await kg_retrieve(
-            project_path="/projects/my-app",
-            task="Get overview of the project structure",
-            compression=2,
-            token_budget=10000
-        )
-
-    CRITICAL - Omission Transparency:
-        The response ALWAYS includes what was NOT loaded.
-        Check 'omission_summary' to understand what's missing.
-        Use 'available_expansions' to see what can be loaded next.
-        Use kg.expand to load specific omitted chunks.
-
-    Best Practice:
-        1. Start with a descriptive task
-        2. Review omission_summary
-        3. Use kg.expand if you need more context
-        4. Use symbols/files to focus on specific areas
+    CRITICAL: Without calling kg.retrieve first, you are operating BLIND.
+    You will miss important code, patterns, and dependencies.
     """
     try:
         path = Path(project_path)

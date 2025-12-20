@@ -2,7 +2,10 @@
 MCP Tool: memory.set
 
 [PRIMARY] Store project learnings in persistent memory.
-Consolidates: memory.set + memory.edit
+
+OBLIGATORY: This tool MUST be called whenever you make a significant decision,
+discover an important pattern, or complete a notable implementation. Without it,
+future sessions will lack critical context about what was decided and why.
 """
 
 from typing import Any, Dict, List, Optional
@@ -19,59 +22,103 @@ async def memory_set(
     append: bool = False
 ) -> Dict[str, Any]:
     """
-    [PRIMARY] Store or update a memory in project knowledge base.
+    [OBLIGATORY - AFTER DECISIONS] Store decisions and learnings in persistent memory.
 
-    Memories persist in SQLite across sessions. Use for storing:
-    - Architectural decisions and rationale
-    - Lessons learned during development
-    - Code patterns and conventions
-    - Important context for future sessions
+    <RULES>
+    1. ALWAYS call memory.set after making an ARCHITECTURAL DECISION
+    2. ALWAYS call memory.set after resolving a SIGNIFICANT BUG and recording the solution
+    3. ALWAYS call memory.set when you establish a NEW PATTERN in the codebase
+    4. ALWAYS call memory.set at the end of a task to record WHAT WAS ACCOMPLISHED
+    5. Use DESCRIPTIVE keys following "topic-subtopic" format
+    6. Use CONSISTENT tags for categorization (architecture, bug-fix, pattern, decision)
+    7. Include the REASONING behind decisions, not just what was decided
+    </RULES>
+
+    <WHEN_TO_USE>
+    ✅ After deciding on an architectural approach (e.g., "chose JWT over sessions")
+    ✅ After fixing a non-obvious bug (e.g., "race condition in payment processing")
+    ✅ After establishing a code pattern (e.g., "all API endpoints use ResultType")
+    ✅ After completing a significant implementation milestone
+    ✅ When you discover something that future sessions should know
+    ✅ Before ending a session - summarize what was done
+    </WHEN_TO_USE>
+
+    <WHEN_NOT_TO_USE>
+    ❌ For trivial changes (typos, formatting)
+    ❌ For temporary debugging notes
+    ❌ For information already in code comments
+    ❌ For duplicating existing memories
+    </WHEN_NOT_TO_USE>
+
+    <MEMORY_FORMAT_PATTERNS>
+    For ARCHITECTURAL DECISIONS (use ADR format):
+        key: "adr-001-authentication-approach"
+        value: |
+            # ADR-001: JWT Authentication
+            ## Context: Needed stateless auth for microservices
+            ## Decision: Use JWT with refresh tokens
+            ## Alternatives: Sessions (rejected: not stateless)
+            ## Consequences: Must handle token refresh client-side
+        tags: ["architecture", "adr", "authentication"]
+
+    For BUG FIXES:
+        key: "bug-fix-payment-race-condition"
+        value: |
+            ## Problem: Double charges on slow networks
+            ## Root Cause: Missing idempotency key validation
+            ## Solution: Added unique constraint + retry logic
+            ## Files Changed: payment.ts, checkout.ts
+        tags: ["bug-fix", "payment"]
+
+    For PATTERNS:
+        key: "pattern-error-handling"
+        value: |
+            ## Pattern: ResultType for all operations
+            ## Usage: return Result.ok(data) or Result.err(error)
+            ## Rationale: Explicit error handling, no exceptions
+        tags: ["pattern", "error-handling"]
+
+    For SESSION SUMMARIES:
+        key: "session-summary-2024-01-15"
+        value: |
+            ## Completed: User authentication feature
+            ## Decisions: JWT with 24h expiry
+            ## Pending: Add refresh token logic
+        tags: ["session-summary"]
+    </MEMORY_FORMAT_PATTERNS>
+
+    <RECOMMENDED_TAGS>
+    - "architecture" → Design decisions
+    - "adr" → Architecture Decision Records
+    - "bug-fix" → Bug solutions
+    - "pattern" → Code patterns
+    - "decision" → General decisions
+    - "implementation" → Implementation notes
+    - "session-summary" → End-of-session summaries
+    - "objective" → Goal tracking
+    </RECOMMENDED_TAGS>
 
     Args:
         project_path: Path to CFA project
-        key: Unique identifier for the memory
-        value: Content to store
-        tags: Optional list of tags for categorization
-        append: If True and key exists, append value instead of replace
+        key: Unique identifier - use "topic-subtopic" format (REQUIRED)
+        value: Content to store - include reasoning! (REQUIRED)
+        tags: List of tags for categorization (RECOMMENDED)
+        append: If True, append to existing memory instead of replace
 
     Returns:
-        Dictionary with:
-            - success: Boolean
-            - key: Memory key
-            - timestamp: When memory was stored
-            - tags: Applied tags
-            - mode: "create", "replace", or "append"
-            - previous_value: (only if updating) Previous content preview
+        - success: Boolean
+        - key: Memory key
+        - mode: "create", "replace", or "append"
+        - timestamp: When stored
 
-    Examples:
-        # Create new memory
-        result = await memory_set(
-            project_path="/projects/my-app",
-            key="auth-decision",
-            value="Using JWT for stateless authentication",
-            tags=["architecture", "security"]
-        )
+    <WORKFLOW>
+    1. Make decision or complete significant work
+    2. memory.set(key="descriptive-key", value="what + why", tags=[...])
+    3. Future sessions can find this with memory.search(tags=[...])
+    </WORKFLOW>
 
-        # Update existing memory (replace)
-        result = await memory_set(
-            project_path="/projects/my-app",
-            key="auth-decision",
-            value="Switched to session-based auth for security",
-            tags=["architecture", "security"]
-        )
-
-        # Append to existing memory
-        result = await memory_set(
-            project_path="/projects/my-app",
-            key="learned-patterns",
-            value="\\n- Also uses repository pattern",
-            append=True
-        )
-
-    Best Practice:
-        Store insights after significant discoveries or decisions.
-        Use consistent key naming: "topic-subtopic" format.
-        Tag memories for easier retrieval with memory.search.
+    CRITICAL: Memories are how you maintain context across sessions.
+    Without memory.set, future sessions start from scratch every time.
     """
     try:
         path = Path(project_path)
