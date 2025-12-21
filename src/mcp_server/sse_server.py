@@ -282,6 +282,113 @@ TOOL_REGISTRY: Dict[str, Any] = {
 }
 
 # ============================================================================
+# Tool Schemas (descriptions + input schemas for /tools endpoint)
+# ============================================================================
+
+# Import tool definitions from main server for consistency
+from src.mcp_server.server import TOOLS as MAIN_TOOLS
+
+# Create schema dict from main server tools
+TOOL_SCHEMAS: Dict[str, Dict[str, Any]] = {
+    tool.name: {
+        "name": tool.name,
+        "description": tool.description,
+        "inputSchema": tool.inputSchema
+    }
+    for tool in MAIN_TOOLS
+}
+
+# Add Phase 6 Configuration tool schemas (SSE-specific)
+TOOL_SCHEMAS.update({
+    "config.list_prompts": {
+        "name": "config.list_prompts",
+        "description": "[NOVA] List all available system prompts",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "category": {"type": "string", "description": "Filter by category (optional)"}
+            },
+            "required": []
+        }
+    },
+    "config.update_prompt": {
+        "name": "config.update_prompt",
+        "description": "[NOVA] Update or create a system prompt",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "prompt_id": {"type": "string", "description": "Unique prompt identifier"},
+                "content": {"type": "string", "description": "Prompt content"},
+                "category": {"type": "string", "description": "Prompt category"},
+                "description": {"type": "string", "description": "Prompt description"}
+            },
+            "required": ["prompt_id", "content"]
+        }
+    },
+    "config.activate_prompt": {
+        "name": "config.activate_prompt",
+        "description": "[NOVA] Activate a system prompt for use",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "prompt_id": {"type": "string", "description": "Prompt ID to activate"},
+                "scope": {"type": "string", "enum": ["global", "project", "session"], "description": "Activation scope"}
+            },
+            "required": ["prompt_id"]
+        }
+    },
+    "config.list_mcp_configs": {
+        "name": "config.list_mcp_configs",
+        "description": "[NOVA] List all MCP server configurations",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "include_disabled": {"type": "boolean", "description": "Include disabled configs"}
+            },
+            "required": []
+        }
+    },
+    "config.update_mcp_config": {
+        "name": "config.update_mcp_config",
+        "description": "[NOVA] Update MCP server configuration",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "server_name": {"type": "string", "description": "MCP server name"},
+                "config": {"type": "object", "description": "Configuration object"},
+                "enabled": {"type": "boolean", "description": "Enable/disable server"}
+            },
+            "required": ["server_name"]
+        }
+    },
+    "config.get_active": {
+        "name": "config.get_active",
+        "description": "[NOVA] Get currently active configuration",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "config_type": {"type": "string", "enum": ["prompts", "mcp", "all"], "description": "Type of config to get"}
+            },
+            "required": []
+        }
+    },
+    # Add kg.watch schema (was missing from main server TOOLS list)
+    "kg.watch": {
+        "name": "kg.watch",
+        "description": "Watch for file changes and auto-rebuild Knowledge Graph",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "project_path": {"type": "string", "description": "Path to CFA project"},
+                "debounce_ms": {"type": "number", "description": "Debounce time in milliseconds (default 1000)"},
+                "patterns": {"type": "array", "items": {"type": "string"}, "description": "File patterns to watch (default: source files)"}
+            },
+            "required": ["project_path"]
+        }
+    }
+})
+
+# ============================================================================
 # Phase 6: Tool Filtering Infrastructure
 # ============================================================================
 
@@ -371,12 +478,34 @@ async def health_check():
 
 # List all available tools
 @app.get("/tools")
-async def list_tools():
-    """Return list of all available MCP tools"""
+async def list_tools(include_schemas: bool = False):
+    """
+    Return list of all available MCP tools.
+
+    Args:
+        include_schemas: If true, return full tool definitions with descriptions and input schemas
+    """
+    if include_schemas:
+        return {
+            "tools": list(TOOL_SCHEMAS.values()),
+            "count": len(TOOL_SCHEMAS)
+        }
     return {
         "tools": list(TOOL_REGISTRY.keys()),
         "count": len(TOOL_REGISTRY)
     }
+
+
+# Get specific tool schema
+@app.get("/tools/{tool_name}")
+async def get_tool_schema(tool_name: str):
+    """Return schema for a specific tool"""
+    if tool_name not in TOOL_SCHEMAS:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Tool '{tool_name}' not found"
+        )
+    return TOOL_SCHEMAS[tool_name]
 
 
 # Execute tool endpoint
