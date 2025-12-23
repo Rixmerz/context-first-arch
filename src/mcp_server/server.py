@@ -1,7 +1,7 @@
 """
 Context-First Architecture + Serena MCP Server (CFA v3) + Nova Integration
 
-Unified server exposing 68 tools for AI-assisted development:
+Unified server exposing 65 tools for AI-assisted development:
 - CFA Core (20 tools): Project, contract, task, context management
 - Symbol Tools (8): Semantic code operations via LSP
 - File Tools (7): Enhanced file operations
@@ -11,7 +11,10 @@ Unified server exposing 68 tools for AI-assisted development:
 - Knowledge Graph History (3): Git-based code archaeology
 - Business Rules (3): Human-confirmed tacit knowledge capture
 - Timeline (3): Snapshot management and rollback
-- Agent Orchestration (7): Nova integration for multi-model AI orchestration
+- Orchestration (4): Nova loop, objective, safe point management
+
+Note: Agent tools (route, spawn, status) removed - Claude Code native Task tool
+with subagent_type now provides equivalent functionality.
 """
 
 import asyncio
@@ -134,11 +137,9 @@ from src.mcp_server.tools.timeline_rollback import timeline_rollback
 from src.mcp_server.tools.timeline_compare import timeline_compare, timeline_list
 
 # ============================================================================
-# Agent Orchestration Tools - Nova Integration (15 MCP tools - CFA v2 compliant)
+# Orchestration Tools - Nova Integration (12 MCP tools - CFA v2 compliant)
+# Note: Agent tools (route, spawn, status) removed - use Claude Code native Task tool
 # ============================================================================
-from src.mcp_server.tools.agent_route import agent_route
-from src.mcp_server.tools.agent_spawn import agent_spawn
-from src.mcp_server.tools.agent_status import agent_status
 from src.mcp_server.tools.objective_define import objective_define
 from src.mcp_server.tools.objective_check import objective_check
 from src.mcp_server.tools.objective_achieve_checkpoint import objective_achieve_checkpoint
@@ -1114,55 +1115,9 @@ TOOLS = [
     ),
 
     # ========================================================================
-    # AGENT ORCHESTRATION TOOLS - Nova Integration (15 MCP tools - CFA v2)
+    # ORCHESTRATION TOOLS - Nova Integration (12 MCP tools - CFA v2)
+    # Note: Agent tools (route, spawn, status) removed - use Claude Code native Task tool
     # ========================================================================
-    Tool(
-        name="agent.route",
-        description="[NOVA] Analyze task and decide which model should handle it (Haiku/Sonnet/Opus)",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "task": {"type": "string", "description": "Task description to analyze"},
-                "context": {"type": "string", "description": "Optional project/codebase context"},
-                "project_path": {"type": "string", "description": "Optional CFA project path"},
-                "force_model": {"type": "string", "enum": ["haiku", "sonnet", "opus"], "description": "Force specific model"}
-            },
-            "required": ["task"]
-        }
-    ),
-    Tool(
-        name="agent.spawn",
-        description="[NOVA] Spawn a model instance to execute a task via Claude Code Task Tool",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "model": {"type": "string", "enum": ["haiku", "sonnet", "opus"], "description": "Model type"},
-                "task": {"type": "string", "description": "Task for the model to execute"},
-                "context": {"type": "string", "description": "Optional context to provide"},
-                "project_path": {"type": "string", "description": "Optional CFA project path"},
-                "timeout": {"type": "number", "description": "Timeout in ms (default 120000)"},
-                "max_tokens": {"type": "number", "description": "Max tokens (default 8000)"},
-                "background": {"type": "boolean", "description": "Run in background mode"},
-                "tags": {"type": "array", "items": {"type": "string"}, "description": "Tags for tracking"}
-            },
-            "required": ["model", "task"]
-        }
-    ),
-    Tool(
-        name="agent.status",
-        description="[NOVA] Get status of model instances",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "instance_id": {"type": "string", "description": "Specific instance ID to query"},
-                "model": {"type": "string", "enum": ["haiku", "sonnet", "opus"], "description": "Filter by model"},
-                "status": {"type": "string", "enum": ["pending", "running", "completed", "failed"], "description": "Filter by status"},
-                "tags": {"type": "array", "items": {"type": "string"}, "description": "Filter by tags"},
-                "include_completed": {"type": "boolean", "description": "Include completed instances"}
-            },
-            "required": []
-        }
-    ),
     Tool(
         name="objective.define",
         description="[NOVA] Define end-to-end objective with success criteria and checkpoints",
@@ -1416,10 +1371,7 @@ TOOL_MAP = {
     "timeline.checkpoint": timeline_checkpoint,
     "timeline.rollback": timeline_rollback,
     "timeline.compare": timeline_compare,
-    # Agent Orchestration - Nova Integration (15 - CFA v2 compliant)
-    "agent.route": agent_route,
-    "agent.spawn": agent_spawn,
-    "agent.status": agent_status,
+    # Orchestration - Nova Integration (12 - CFA v2 compliant)
     "objective.define": objective_define,
     "objective.check": objective_check,
     "objective.achieve_checkpoint": objective_achieve_checkpoint,

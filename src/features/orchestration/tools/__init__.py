@@ -1,16 +1,22 @@
 """
 Orchestration Tools - MCP Tool Wrappers
 
-15 tools for Nova Agent Orchestration:
-- Agent (3): route, spawn, status
+18 tools for Nova Orchestration:
+- Config (6): list_prompts, update_prompt, activate_prompt, list_mcp_configs, update_mcp_config, get_active
 - Objective (5): define, check, achieve_checkpoint, record_iteration, fail
 - Loop (4): configure, iterate, stop, status
 - Safe Point (3): create, rollback, list
+
+Note: Agent tools (route, spawn, status) removed - Claude Code native Task tool with
+subagent_type now provides equivalent functionality.
 """
 
-from .agent_route import agent_route
-from .agent_spawn import agent_spawn
-from .agent_status import agent_status
+from .config_list_prompts import config_list_prompts
+from .config_update_prompt import config_update_prompt
+from .config_activate_prompt import config_activate_prompt
+from .config_list_mcp_configs import config_list_mcp_configs
+from .config_update_mcp_config import config_update_mcp_config
+from .config_get_active import config_get_active
 from .objective_define import objective_define
 from .objective_check import objective_check
 from .objective_achieve_checkpoint import objective_achieve_checkpoint
@@ -25,10 +31,13 @@ from .safe_point_rollback import safe_point_rollback
 from .safe_point_list import safe_point_list
 
 __all__ = [
-    # Agent
-    "agent_route",
-    "agent_spawn",
-    "agent_status",
+    # Config (Phase 6)
+    "config_list_prompts",
+    "config_update_prompt",
+    "config_activate_prompt",
+    "config_list_mcp_configs",
+    "config_update_mcp_config",
+    "config_get_active",
     # Objective
     "objective_define",
     "objective_check",

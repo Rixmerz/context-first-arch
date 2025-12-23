@@ -1,9 +1,9 @@
 """MCP Tools for Context-First Architecture v3 - Feature-Based Architecture.
 
-74 tools total organized by feature:
+77 tools total organized by feature:
 - Project/Task/Context/Decision (9): CFA core management
 - Memory (5): Persistent project knowledge
-- Orchestration (15): Nova multi-model AI orchestration
+- Orchestration (18): Nova multi-model AI orchestration + Config Management (Phase 6)
 - Knowledge Graph (12): Intelligent context retrieval
 - Symbol (8): Semantic code operations via LSP
 - File (7): Enhanced file operations
@@ -55,11 +55,14 @@ from src.features.memory.tools import (
     memory_delete,
 )
 
-# Orchestration Feature (15 tools)
+# Orchestration Feature (18 tools - Loop, Objective, SafePoint, Config)
 from src.features.orchestration.tools import (
-    agent_route,
-    agent_spawn,
-    agent_status,
+    config_list_prompts,
+    config_update_prompt,
+    config_activate_prompt,
+    config_list_mcp_configs,
+    config_update_mcp_config,
+    config_get_active,
     objective_define,
     objective_check,
     objective_achieve_checkpoint,
@@ -166,8 +169,9 @@ __all__ = [
     "docs_generate", "map_auto_update", "test_coverage_map",
     # Memory (5)
     "memory_set", "memory_get", "memory_search", "memory_list", "memory_delete",
-    # Orchestration (15)
-    "agent_route", "agent_spawn", "agent_status",
+    # Orchestration (18)
+    "config_list_prompts", "config_update_prompt", "config_activate_prompt",
+    "config_list_mcp_configs", "config_update_mcp_config", "config_get_active",
     "objective_define", "objective_check", "objective_achieve_checkpoint",
     "objective_record_iteration", "objective_fail",
     "loop_configure", "loop_iterate", "loop_stop", "loop_status",
