@@ -1,9 +1,8 @@
 """
-Context-First Architecture + Serena MCP Server (CFA v3) + Nova Integration
+Context-First Architecture MCP Server (CFA v3) + Nova Integration
 
-Unified server exposing 65 tools for AI-assisted development:
+Unified server exposing 57 tools for AI-assisted development:
 - CFA Core (20 tools): Project, contract, task, context management
-- Symbol Tools (8): Semantic code operations via LSP
 - File Tools (7): Enhanced file operations
 - Workflow Tools (4): Meta-cognition and reflection
 - Memory Tools (5): Persistent project knowledge
@@ -13,8 +12,9 @@ Unified server exposing 65 tools for AI-assisted development:
 - Timeline (3): Snapshot management and rollback
 - Orchestration (4): Nova loop, objective, safe point management
 
-Note: Agent tools (route, spawn, status) removed - Claude Code native Task tool
-with subagent_type now provides equivalent functionality.
+Notes:
+- Agent tools (route, spawn, status) removed - use Claude Code native Task tool
+- Symbol tools (8) removed - LSP indexing broken, use native Claude Code tools
 """
 
 import asyncio
@@ -72,15 +72,9 @@ from src.mcp_server.tools.memory_list import memory_list
 from src.mcp_server.tools.memory_delete import memory_delete
 
 # ============================================================================
-# Symbol Tools - Serena Integration (8) - Consolidated
+# Symbol Tools - REMOVED (8 tools deprecated due to LSP indexing issues)
+# Use native Claude Code tools: Grep, Read, Edit instead
 # ============================================================================
-from src.mcp_server.tools.symbol_find import symbol_find
-from src.mcp_server.tools.symbol_overview import symbol_overview
-from src.mcp_server.tools.symbol_references import symbol_references
-from src.mcp_server.tools.symbol_replace import symbol_replace
-from src.mcp_server.tools.symbol_insert import symbol_insert
-from src.mcp_server.tools.symbol_rename import symbol_rename
-from src.mcp_server.tools.lsp_manage import lsp_status, lsp_restart
 
 # ============================================================================
 # File Tools - Serena Integration (7) - Consolidated
@@ -527,119 +521,9 @@ TOOLS = [
     ),
 
     # ========================================================================
-    # SYMBOL TOOLS - Serena (8) - Consolidated
+    # SYMBOL TOOLS - REMOVED (8 tools deprecated due to LSP indexing issues)
+    # Use native Claude Code tools: Grep, Read, Edit instead
     # ========================================================================
-    Tool(
-        name="symbol.find",
-        description="[PRIMARY] Find symbols (functions, classes) by name",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to project root"},
-                "symbol_name": {"type": "string", "description": "Name to find (partial match)"},
-                "file_path": {"type": "string", "description": "Limit search to specific file"},
-                "symbol_kind": {"type": "string", "description": "Filter: function, class, method, variable"},
-                "include_body": {"type": "boolean", "description": "Include symbol body"},
-                "max_results": {"type": "number", "description": "Maximum results"}
-            },
-            "required": ["project_path", "symbol_name"]
-        }
-    ),
-    Tool(
-        name="symbol.overview",
-        description="Get hierarchical symbol structure of a file",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to project root"},
-                "file_path": {"type": "string", "description": "Relative path to file"},
-                "max_depth": {"type": "number", "description": "Maximum nesting depth"},
-                "max_chars": {"type": "number", "description": "Maximum output characters"}
-            },
-            "required": ["project_path", "file_path"]
-        }
-    ),
-    Tool(
-        name="symbol.references",
-        description="Find all references to a symbol",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to project root"},
-                "file_path": {"type": "string", "description": "File containing the symbol"},
-                "line": {"type": "number", "description": "Line number (1-indexed)"},
-                "column": {"type": "number", "description": "Column number (1-indexed)"},
-                "context_lines": {"type": "number", "description": "Context lines around each reference"}
-            },
-            "required": ["project_path", "file_path", "line", "column"]
-        }
-    ),
-    Tool(
-        name="symbol.replace",
-        description="[PRIMARY] Replace symbol body. Use for code changes",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to project root"},
-                "file_path": {"type": "string", "description": "File containing the symbol"},
-                "symbol_name": {"type": "string", "description": "Name of symbol to replace"},
-                "new_body": {"type": "string", "description": "New implementation code"}
-            },
-            "required": ["project_path", "file_path", "symbol_name", "new_body"]
-        }
-    ),
-    Tool(
-        name="symbol.insert",
-        description="Insert content before/after a symbol",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to project root"},
-                "file_path": {"type": "string", "description": "File containing the symbol"},
-                "symbol_name": {"type": "string", "description": "Symbol to insert relative to"},
-                "content": {"type": "string", "description": "Code to insert"},
-                "position": {"type": "string", "enum": ["before", "after"], "description": "before or after (default: after)"}
-            },
-            "required": ["project_path", "file_path", "symbol_name", "content"]
-        }
-    ),
-    Tool(
-        name="symbol.rename",
-        description="Rename symbol across entire project",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to project root"},
-                "file_path": {"type": "string", "description": "File with symbol definition"},
-                "old_name": {"type": "string", "description": "Current symbol name"},
-                "new_name": {"type": "string", "description": "New symbol name"}
-            },
-            "required": ["project_path", "file_path", "old_name", "new_name"]
-        }
-    ),
-    Tool(
-        name="lsp.status",
-        description="Get LSP server status",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to project root"}
-            },
-            "required": ["project_path"]
-        }
-    ),
-    Tool(
-        name="lsp.restart",
-        description="Restart LSP server(s)",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to project root"},
-                "language": {"type": "string", "description": "Specific language to restart (optional)"}
-            },
-            "required": ["project_path"]
-        }
-    ),
 
     # ========================================================================
     # FILE TOOLS - Serena (7) - Consolidated
@@ -1326,15 +1210,7 @@ TOOL_MAP = {
     "memory.search": memory_search,
     "memory.list": memory_list,
     "memory.delete": memory_delete,
-    # Symbol (8 - consolidated)
-    "symbol.find": symbol_find,
-    "symbol.overview": symbol_overview,
-    "symbol.references": symbol_references,
-    "symbol.replace": symbol_replace,
-    "symbol.insert": symbol_insert,
-    "symbol.rename": symbol_rename,
-    "lsp.status": lsp_status,
-    "lsp.restart": lsp_restart,
+    # Symbol - REMOVED (8 tools deprecated)
     # File (7 - consolidated)
     "file.read": file_read,
     "file.create": file_create,

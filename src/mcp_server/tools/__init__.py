@@ -1,17 +1,18 @@
 """MCP Tools for Context-First Architecture v3 - Feature-Based Architecture.
 
-77 tools total organized by feature:
+69 tools total organized by feature:
 - Project/Task/Context/Decision (9): CFA core management
 - Memory (5): Persistent project knowledge
 - Orchestration (18): Nova multi-model AI orchestration + Config Management (Phase 6)
 - Knowledge Graph (12): Intelligent context retrieval
-- Symbol (8): Semantic code operations via LSP
 - File (7): Enhanced file operations
 - Contract (4): Contract management
 - Workflow (4): Meta-cognition and reflection
 - Analysis (4): Code analysis and metrics
 - Timeline (4): Snapshot management and rollback
 - Rules (4): Business rules capture
+
+NOTE: Symbol tools (8) removed - LSP indexing broken. Use native Claude Code tools.
 
 All features follow CFA v2 architecture: features/{name}/core + features/{name}/tools
 """
@@ -93,17 +94,8 @@ from src.features.knowledge_graph.tools import (
     kg_watch,
 )
 
-# Symbol Feature (8 tools)
-from src.features.symbol.tools import (
-    symbol_find,
-    symbol_overview,
-    symbol_references,
-    symbol_replace,
-    symbol_insert,
-    symbol_rename,
-    lsp_status,
-    lsp_restart,
-)
+# Symbol Feature - REMOVED (8 tools deprecated due to LSP indexing issues)
+# Use native Claude Code tools: Grep, Read, Edit instead
 
 # File Feature (7 tools)
 from src.features.file.tools import (
@@ -179,10 +171,7 @@ __all__ = [
     # Knowledge Graph (12)
     "kg_build", "kg_status", "kg_retrieve", "kg_expand", "kg_get", "kg_search",
     "kg_omitted", "kg_related", "kg_history", "kg_blame", "kg_diff", "kg_watch",
-    # Symbol (8)
-    "symbol_find", "symbol_overview", "symbol_references",
-    "symbol_replace", "symbol_insert", "symbol_rename",
-    "lsp_status", "lsp_restart",
+    # Symbol - REMOVED (8 tools deprecated)
     # File (7)
     "file_read", "file_create", "file_list", "file_find",
     "file_replace", "file_edit_lines", "file_search",
