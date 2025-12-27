@@ -1,20 +1,26 @@
 """
-Context-First Architecture MCP Server (CFA v3) + Nova Integration
+Context-First Architecture MCP Server (CFA v3) - Streamlined
 
-Unified server exposing 57 tools for AI-assisted development:
-- CFA Core (20 tools): Project, contract, task, context management
-- File Tools (7): Enhanced file operations
-- Workflow Tools (4): Meta-cognition and reflection
-- Memory Tools (5): Persistent project knowledge
-- Knowledge Graph Core (8): Intelligent context retrieval with omission transparency
-- Knowledge Graph History (3): Git-based code archaeology
-- Business Rules (3): Human-confirmed tacit knowledge capture
-- Timeline (3): Snapshot management and rollback
-- Orchestration (4): Nova loop, objective, safe point management
+Unified server exposing 41 high-value tools for AI-assisted development:
+- Project (3): init, scan, migrate
+- Contract (5): create, validate, diff, sync, check_breaking (NEW!)
+- Task (3): start, update, complete - CFA-persisted task tracking
+- Decision (1): Architecture Decision Records
+- Analysis (4): dependency, pattern, impact, coupling - KG-powered
+- Memory (5): Persistent project knowledge across sessions
+- Workflow (2): onboard, instructions - entry points
+- Knowledge Graph (11): Core (8) + History (3) - intelligent context retrieval
+- Business Rules (4): Human-confirmed tacit knowledge capture
+- Safe Points (3): Git-based checkpoints and rollback
 
-Notes:
-- Agent tools (route, spawn, status) removed - use Claude Code native Task tool
-- Symbol tools (8) removed - LSP indexing broken, use native Claude Code tools
+REMOVED (redundant with Claude Code native tools):
+- File tools (7) - Claude Code has Read, Write, Edit, Glob, Grep
+- Symbol tools (8) - LSP indexing issues, use native tools
+- Timeline tools (3) - duplicates safe_point.*
+- Orchestration/Nova (9) - over-engineered, Claude Code has internal loop
+- Context tools (2) - workflow.onboard does this better
+- Documentation tools (3) - low value, KG replaces
+- Workflow reflect/summarize (2) - LLM does this naturally
 """
 
 import asyncio
@@ -38,6 +44,7 @@ from src.mcp_server.tools.contract_create import contract_create
 from src.mcp_server.tools.contract_validate import contract_validate
 from src.mcp_server.tools.contract_diff import contract_diff
 from src.mcp_server.tools.contract_sync import contract_sync
+from src.mcp_server.tools.contract_check_breaking import contract_check_breaking
 
 # Task Tools
 from src.mcp_server.tools.task_start import task_start
@@ -47,9 +54,9 @@ from src.mcp_server.tools.task_complete import task_complete
 # Decision Tools
 from src.mcp_server.tools.decision_add import decision_add
 
-# Context Tools
-from src.mcp_server.tools.context_load import context_load
-from src.mcp_server.tools.context_optimize import context_optimize
+# Context Tools - REMOVED (workflow.onboard does this better)
+# from src.mcp_server.tools.context_load import context_load
+# from src.mcp_server.tools.context_optimize import context_optimize
 
 # Analysis Tools
 from src.mcp_server.tools.dependency_analyze import dependency_analyze
@@ -57,10 +64,10 @@ from src.mcp_server.tools.pattern_detect import pattern_detect
 from src.mcp_server.tools.impact_analyze import impact_analyze
 from src.mcp_server.tools.coupling_analyze import coupling_analyze
 
-# Documentation Tools
-from src.mcp_server.tools.docs_generate import docs_generate
-from src.mcp_server.tools.map_auto_update import map_auto_update
-from src.mcp_server.tools.test_coverage_map import test_coverage_map
+# Documentation Tools - REMOVED (low value, KG replaces this)
+# from src.mcp_server.tools.docs_generate import docs_generate
+# from src.mcp_server.tools.map_auto_update import map_auto_update
+# from src.mcp_server.tools.test_coverage_map import test_coverage_map
 
 # ============================================================================
 # Memory Tools (5) - Consolidated
@@ -77,26 +84,19 @@ from src.mcp_server.tools.memory_delete import memory_delete
 # ============================================================================
 
 # ============================================================================
-# File Tools - Serena Integration (7) - Consolidated
+# File Tools - REMOVED (7 tools deprecated - redundant with Claude Code native)
+# Claude Code has: Read, Write, Edit, Glob, Grep
 # ============================================================================
-from src.mcp_server.tools.file_read import file_read
-from src.mcp_server.tools.file_create import file_create
-from src.mcp_server.tools.file_list import file_list
-from src.mcp_server.tools.file_find import file_find
-from src.mcp_server.tools.file_replace import file_replace
-from src.mcp_server.tools.file_edit_lines import file_edit_lines
-from src.mcp_server.tools.file_search import file_search
 
 # ============================================================================
-# Workflow Tools - Serena Integration (4) - Consolidated
+# Workflow Tools - Entry Points (2) - Consolidated
+# Note: reflect and summarize REMOVED (LLM does this naturally)
 # ============================================================================
 from src.mcp_server.tools.workflow_onboard import workflow_onboard
-from src.mcp_server.tools.workflow_reflect import workflow_reflect
-from src.mcp_server.tools.workflow_summarize import workflow_summarize
 from src.mcp_server.tools.workflow_instructions import workflow_instructions
 
 # ============================================================================
-# Knowledge Graph Core Tools (9) - CFA v3
+# Knowledge Graph Core Tools (8) - CFA v3
 # ============================================================================
 from src.mcp_server.tools.kg_build import kg_build
 from src.mcp_server.tools.kg_status import kg_status
@@ -106,7 +106,7 @@ from src.mcp_server.tools.kg_get import kg_get
 from src.mcp_server.tools.kg_search import kg_search
 from src.mcp_server.tools.kg_omitted import kg_omitted
 from src.mcp_server.tools.kg_related import kg_related
-from src.mcp_server.tools.kg_watch import kg_watch
+# kg_watch REMOVED - unnecessary complexity
 
 # ============================================================================
 # Knowledge Graph History Tools (3) - Phase 2
@@ -124,25 +124,15 @@ from src.mcp_server.tools.rule_list import rule_list
 from src.mcp_server.tools.rule_batch import rule_batch
 
 # ============================================================================
-# Timeline Tools (3) - Phase 4
+# Timeline Tools - REMOVED (3 tools deprecated - duplicates safe_point.*)
+# Use safe_point.create and safe_point.rollback instead
 # ============================================================================
-from src.mcp_server.tools.timeline_checkpoint import timeline_checkpoint
-from src.mcp_server.tools.timeline_rollback import timeline_rollback
-from src.mcp_server.tools.timeline_compare import timeline_compare, timeline_list
 
 # ============================================================================
-# Orchestration Tools - Nova Integration (12 MCP tools - CFA v2 compliant)
-# Note: Agent tools (route, spawn, status) removed - use Claude Code native Task tool
+# Orchestration Tools - Nova Integration
+# Note: objective.* and loop.* REMOVED (over-engineered, Claude Code has internal loop)
+# Only safe_point.* retained as useful undo mechanism
 # ============================================================================
-from src.mcp_server.tools.objective_define import objective_define
-from src.mcp_server.tools.objective_check import objective_check
-from src.mcp_server.tools.objective_achieve_checkpoint import objective_achieve_checkpoint
-from src.mcp_server.tools.objective_record_iteration import objective_record_iteration
-from src.mcp_server.tools.objective_fail import objective_fail
-from src.mcp_server.tools.loop_configure import loop_configure
-from src.mcp_server.tools.loop_iterate import loop_iterate
-from src.mcp_server.tools.loop_stop import loop_stop
-from src.mcp_server.tools.loop_status import loop_status
 from src.mcp_server.tools.safe_point_create import safe_point_create
 from src.mcp_server.tools.safe_point_rollback import safe_point_rollback
 from src.mcp_server.tools.safe_point_list import safe_point_list
@@ -165,7 +155,7 @@ TOOLS = [
     # ========================================================================
     Tool(
         name="project.init",
-        description="Create new CFA v2 project with optimized structure",
+        description="[USE WHEN: Starting work on a new project without .claude/ folder] Creates CFA project structure. BEFORE starting any coding task on a new project, check if .claude/ exists - if not, call this to enable intelligent context retrieval.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -181,7 +171,7 @@ TOOLS = [
     ),
     Tool(
         name="project.scan",
-        description="Scan project and update map.md with analysis",
+        description="[USE WHEN: Project structure has changed significantly] Re-scans project and updates map.md. Call after adding new features/modules or major refactoring to keep project map current.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -192,7 +182,7 @@ TOOLS = [
     ),
     Tool(
         name="project.migrate",
-        description="Convert existing project to CFA structure",
+        description="[USE WHEN: User wants CFA on existing codebase] Converts existing project to CFA structure. Use this instead of project.init when the project already has code but no .claude/ folder.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -207,11 +197,11 @@ TOOLS = [
     ),
 
     # ========================================================================
-    # CONTRACT TOOLS (4)
+    # CONTRACT TOOLS (5) - Includes breaking change detection
     # ========================================================================
     Tool(
         name="contract.create",
-        description="Generate contract.md from implementation code",
+        description="[USE WHEN: Documenting a stable API/interface] Generates contract.md from implementation. Call when a module's public interface is stable and should be documented for consumers.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -225,7 +215,7 @@ TOOLS = [
     ),
     Tool(
         name="contract.validate",
-        description="Check implementation matches its contract",
+        description="[USE WHEN: Before releasing or after refactoring] Validates implementation matches contract. MUST call before completing any task that modified code with an existing contract.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -237,7 +227,7 @@ TOOLS = [
     ),
     Tool(
         name="contract.diff",
-        description="Compare contract vs implementation differences",
+        description="[USE WHEN: Contract validation fails] Shows exact differences between contract and implementation. Call after contract.validate returns issues to see what specifically needs fixing.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -250,7 +240,7 @@ TOOLS = [
     ),
     Tool(
         name="contract.sync",
-        description="Update contract from implementation changes",
+        description="[USE WHEN: Implementation intentionally changed] Updates contract to match new implementation. Call when you INTENTIONALLY changed a function signature and want the contract to reflect the new reality.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -261,13 +251,26 @@ TOOLS = [
             "required": ["project_path", "impl_file"]
         }
     ),
+    Tool(
+        name="contract.check_breaking",
+        description="[MANDATORY AFTER FUNCTION EDITS] CRITICAL: Call this IMMEDIATELY after modifying ANY function signature (parameters added/removed/reordered, types changed). Finds ALL callers via KG and detects incompatibilities. DO NOT mark task complete until breaking_changes=[] is confirmed. Skipping this WILL cause runtime errors.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "project_path": {"type": "string", "description": "Path to CFA project"},
+                "symbol": {"type": "string", "description": "Function/method name to check (e.g., 'calculate_total')"},
+                "file_path": {"type": "string", "description": "Optional file path to disambiguate if multiple matches"}
+            },
+            "required": ["project_path", "symbol"]
+        }
+    ),
 
     # ========================================================================
     # TASK TOOLS (3)
     # ========================================================================
     Tool(
         name="task.start",
-        description="[PRIMARY] Begin new task in current-task.md",
+        description="[USE AT SESSION START] Records current task in CFA project for persistence across sessions. Call AFTER workflow.onboard when starting a complex multi-step task. Enables task.update to track progress.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -281,7 +284,7 @@ TOOLS = [
     ),
     Tool(
         name="task.update",
-        description="Update progress on current task",
+        description="[USE AFTER EACH MILESTONE] Records progress on current CFA task. Call after completing significant steps, encountering blockers, or modifying files. Keeps task state current for session recovery.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -296,7 +299,7 @@ TOOLS = [
     ),
     Tool(
         name="task.complete",
-        description="Mark current task as completed",
+        description="[USE WHEN TASK FINISHED] Marks CFA task as completed with summary. Call ONLY after all steps done AND contract.check_breaking passed (if functions were modified). Archives task for future reference.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -312,7 +315,7 @@ TOOLS = [
     # ========================================================================
     Tool(
         name="decision.add",
-        description="Document architecture decision in decisions.md",
+        description="[USE WHEN MAKING ARCHITECTURAL CHOICES] Documents WHY a decision was made. MUST call when choosing between libraries, patterns, or approaches. Future sessions will see this context. Prevents re-debating settled decisions.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -327,38 +330,14 @@ TOOLS = [
             "required": ["project_path", "title", "context", "decision", "reason"]
         }
     ),
-    Tool(
-        name="context.load",
-        description="Load map.md + current-task.md (use workflow.onboard for full context)",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to CFA project"}
-            },
-            "required": ["project_path"]
-        }
-    ),
-    Tool(
-        name="context.optimize",
-        description="Optimize content for LLM token limits",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to CFA project"},
-                "file_path": {"type": "string", "description": "Relative path to file"},
-                "max_tokens": {"type": "number", "description": "Maximum token count"},
-                "model": {"type": "string", "description": "Model name for token counting"}
-            },
-            "required": ["project_path", "file_path"]
-        }
-    ),
+    # context.load and context.optimize REMOVED (workflow.onboard does this better)
 
     # ========================================================================
     # ANALYSIS TOOLS (4)
     # ========================================================================
     Tool(
         name="dependency.analyze",
-        description="Analyze dependencies for features or files",
+        description="[USE BEFORE REFACTORING] Shows what depends on a file/feature and what it depends on. Call BEFORE moving, renaming, or deleting files to understand blast radius. Detects circular dependencies.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -372,7 +351,7 @@ TOOLS = [
     ),
     Tool(
         name="pattern.detect",
-        description="Detect code patterns and inconsistencies",
+        description="[USE BEFORE ADDING NEW CODE] Detects project's coding patterns (naming, imports, function style). Call when unsure about project conventions. Write new code following detected patterns for consistency.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -384,7 +363,7 @@ TOOLS = [
     ),
     Tool(
         name="impact.analyze",
-        description="Calculate change impact and blast radius",
+        description="[USE BEFORE RISKY CHANGES] Calculates risk score and blast radius. Call BEFORE modifying core files, deleting code, or major refactors. If risk=high/critical, create safe_point FIRST. Shows which tests to run after change.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -397,7 +376,7 @@ TOOLS = [
     ),
     Tool(
         name="coupling.analyze",
-        description="Analyze feature coupling and dependencies",
+        description="[USE FOR ARCHITECTURE REVIEW] Identifies tightly coupled features that should be decoupled. Call when planning major refactoring or evaluating code quality. High coupling = harder to maintain.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -410,52 +389,16 @@ TOOLS = [
     ),
 
     # ========================================================================
-    # DOCUMENTATION TOOLS (3)
+    # DOCUMENTATION TOOLS - REMOVED (low value, KG replaces this)
+    # docs.generate, map.auto_update, test.coverage_map
     # ========================================================================
-    Tool(
-        name="docs.generate",
-        description="Generate documentation from code and contracts",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to CFA project"},
-                "feature": {"type": "string", "description": "Feature name"},
-                "output_dir": {"type": "string", "description": "Directory to save docs"}
-            },
-            "required": ["project_path", "feature"]
-        }
-    ),
-    Tool(
-        name="map.auto_update",
-        description="Auto-update map.md when files change",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to CFA project"},
-                "force": {"type": "boolean", "description": "Force update even if no changes"}
-            },
-            "required": ["project_path"]
-        }
-    ),
-    Tool(
-        name="test.coverage_map",
-        description="Map test coverage to contract requirements",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to CFA project"},
-                "contract_file": {"type": "string", "description": "Relative path to contract"}
-            },
-            "required": ["project_path", "contract_file"]
-        }
-    ),
 
     # ========================================================================
     # MEMORY TOOLS (5) - Consolidated
     # ========================================================================
     Tool(
         name="memory.set",
-        description="[PRIMARY] Store learning in memory (supports append mode)",
+        description="[USE WHEN LEARNING SOMETHING IMPORTANT] Persists knowledge across sessions. MUST call when discovering: project patterns, gotchas, architectural decisions, environment quirks. Future sessions will retrieve this. Tags: architecture, pattern, gotcha, config, decision.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -470,7 +413,7 @@ TOOLS = [
     ),
     Tool(
         name="memory.get",
-        description="Retrieve memory by key",
+        description="[USE WHEN RECALLING SPECIFIC KNOWLEDGE] Retrieves previously stored memory by exact key. Call when you remember storing something specific but need the details.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -482,7 +425,7 @@ TOOLS = [
     ),
     Tool(
         name="memory.search",
-        description="Search memories by query and/or tags",
+        description="[USE AT SESSION START] Searches stored memories by content or tags. Call AFTER workflow.onboard to check if past sessions learned anything relevant to current task. Query with task-related keywords.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -496,7 +439,7 @@ TOOLS = [
     ),
     Tool(
         name="memory.list",
-        description="List all stored memories",
+        description="[USE FOR MEMORY OVERVIEW] Lists all stored memories with optional tag filter. Call to see what knowledge has been accumulated about this project across all sessions.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -509,7 +452,7 @@ TOOLS = [
     ),
     Tool(
         name="memory.delete",
-        description="Delete a stored memory",
+        description="[USE TO REMOVE OUTDATED KNOWLEDGE] Deletes a stored memory that is no longer accurate. Call when a memory contains information that has changed or was incorrect.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -526,132 +469,16 @@ TOOLS = [
     # ========================================================================
 
     # ========================================================================
-    # FILE TOOLS - Serena (7) - Consolidated
+    # FILE TOOLS - REMOVED (7 tools deprecated - redundant with Claude Code)
+    # Claude Code has: Read, Write, Edit, Glob, Grep
     # ========================================================================
-    Tool(
-        name="file.read",
-        description="Read file with optional line range",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to project root"},
-                "file_path": {"type": "string", "description": "Relative path to file"},
-                "start_line": {"type": "number", "description": "Starting line (1-indexed)"},
-                "end_line": {"type": "number", "description": "Ending line (1-indexed)"},
-                "include_line_numbers": {"type": "boolean", "description": "Prefix lines with numbers"}
-            },
-            "required": ["project_path", "file_path"]
-        }
-    ),
-    Tool(
-        name="file.create",
-        description="Create new file with content",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to project root"},
-                "file_path": {"type": "string", "description": "Relative path for new file"},
-                "content": {"type": "string", "description": "Content to write"},
-                "overwrite": {"type": "boolean", "description": "Overwrite if exists"},
-                "create_directories": {"type": "boolean", "description": "Create parent dirs"}
-            },
-            "required": ["project_path", "file_path"]
-        }
-    ),
-    Tool(
-        name="file.list",
-        description="List directory contents with filters",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to project root"},
-                "directory": {"type": "string", "description": "Directory to list"},
-                "recursive": {"type": "boolean", "description": "List recursively"},
-                "pattern": {"type": "string", "description": "Glob pattern filter"},
-                "include_hidden": {"type": "boolean", "description": "Include hidden files"},
-                "max_depth": {"type": "number", "description": "Max recursion depth"},
-                "file_types": {"type": "array", "items": {"type": "string"}, "description": "Filter by extensions"}
-            },
-            "required": ["project_path"]
-        }
-    ),
-    Tool(
-        name="file.find",
-        description="Find files matching pattern (glob/regex)",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to project root"},
-                "pattern": {"type": "string", "description": "Glob or regex pattern"},
-                "directory": {"type": "string", "description": "Starting directory"},
-                "use_regex": {"type": "boolean", "description": "Use regex instead of glob"},
-                "include_hidden": {"type": "boolean", "description": "Include hidden files"},
-                "max_results": {"type": "number", "description": "Maximum results"}
-            },
-            "required": ["project_path", "pattern"]
-        }
-    ),
-    Tool(
-        name="file.replace",
-        description="Search/replace in file. Use symbol.replace for code",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to project root"},
-                "file_path": {"type": "string", "description": "Relative path to file"},
-                "search": {"type": "string", "description": "String or pattern to find"},
-                "replace": {"type": "string", "description": "Replacement string"},
-                "use_regex": {"type": "boolean", "description": "Use regex matching"},
-                "count": {"type": "number", "description": "Max replacements (0=all)"},
-                "case_sensitive": {"type": "boolean", "description": "Case sensitive"}
-            },
-            "required": ["project_path", "file_path", "search", "replace"]
-        }
-    ),
-    Tool(
-        name="file.edit_lines",
-        description="Delete/replace/insert lines. Use symbol.* for code",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to project root"},
-                "file_path": {"type": "string", "description": "Relative path to file"},
-                "operation": {"type": "string", "enum": ["delete", "replace", "insert"], "description": "Operation type"},
-                "lines": {"description": "Lines: number, [list], or 'range' for delete/insert"},
-                "content": {"type": "string", "description": "Content for replace/insert"},
-                "start_line": {"type": "number", "description": "Start line for replace"},
-                "end_line": {"type": "number", "description": "End line for replace"},
-                "insert_after": {"type": "boolean", "description": "Insert after line (for insert)"}
-            },
-            "required": ["project_path", "file_path", "operation"]
-        }
-    ),
-    Tool(
-        name="file.search",
-        description="[PRIMARY] Search for patterns across files (grep)",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to project root"},
-                "pattern": {"type": "string", "description": "Search pattern"},
-                "directory": {"type": "string", "description": "Directory to search"},
-                "file_pattern": {"type": "string", "description": "Glob for files (e.g. *.py)"},
-                "use_regex": {"type": "boolean", "description": "Use regex matching"},
-                "case_sensitive": {"type": "boolean", "description": "Case sensitive"},
-                "context_lines": {"type": "number", "description": "Context lines around matches"},
-                "max_results": {"type": "number", "description": "Maximum matches"},
-                "include_hidden": {"type": "boolean", "description": "Include hidden files"}
-            },
-            "required": ["project_path", "pattern"]
-        }
-    ),
 
     # ========================================================================
     # WORKFLOW TOOLS - Serena (4) - Consolidated
     # ========================================================================
     Tool(
         name="workflow.onboard",
-        description="[START HERE] Load project context. Use check_only=true to verify freshness",
+        description="[MANDATORY AT SESSION START] Loads project context including map, decisions, and current task state. Call this FIRST in every session on a CFA project. Tells you what the project is, current state, and what was being worked on. DO NOT start coding without calling this first.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -664,50 +491,40 @@ TOOLS = [
             "required": ["project_path"]
         }
     ),
-    Tool(
-        name="workflow.reflect",
-        description="Structured thinking: type=info|task|done",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to project root"},
-                "reflect_type": {"type": "string", "enum": ["info", "task", "done"], "description": "Reflection type"},
-                "content": {"type": "string", "description": "Content to reflect on"},
-                "context": {"type": "string", "description": "Additional context"},
-                "questions": {"type": "array", "items": {"type": "string"}, "description": "Questions to consider (for info)"},
-                "concerns": {"type": "array", "items": {"type": "string"}, "description": "Concerns to address (for task)"},
-                "tests_passed": {"type": "boolean", "description": "Whether tests passed (for done)"}
-            },
-            "required": ["project_path", "reflect_type", "content"]
-        }
-    ),
-    Tool(
-        name="workflow.summarize",
-        description="Generate summary of changes made",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to project root"},
-                "changes": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "file": {"type": "string"},
-                            "type": {"type": "string"},
-                            "description": {"type": "string"}
-                        }
-                    },
-                    "description": "List of changes made"
-                },
-                "task_description": {"type": "string", "description": "Task context"}
-            },
-            "required": ["project_path", "changes"]
-        }
-    ),
+    # workflow.reflect and workflow.summarize REMOVED (LLM does this naturally)
     Tool(
         name="workflow.instructions",
-        description="Get CFA workflow guide and best practices",
+        description="""[START HERE] IMPORTANT: This is the PRIMARY tool for learning Context-First Architecture (CFA).
+Please consider as the FIRST CHOICE at the start of any development session.
+Call this tool FIRST in any new session to understand what CFA is and how to use its tools.
+
+Context-First Architecture (CFA) v3 is an AI-assisted development framework that provides:
+1. Knowledge Graph - Intelligent, task-aware context retrieval from your codebase
+2. Omission Transparency - Always know what code you CAN and CANNOT see
+3. Contracts - Interface definitions that document boundaries between components
+4. Memory - Persistent storage for learnings across sessions
+5. Safe Points - Git-based checkpoints for risky operations
+6. Task Tracking - Structured workflow for development tasks
+
+The workflow.instructions tool should be used in the following cases:
+* At the START of every new development session (MANDATORY)
+* When you don't know what CFA tools are available
+* When you need to understand the CFA workflow
+* Before starting work on any CFA project
+
+Examples of when to call this:
+* Starting a new coding session
+* "How do I use CFA?"
+* "What tools are available?"
+
+After calling this, ALWAYS call workflow.onboard() to load project context.
+
+CRITICAL: At the START of every development session, you MUST:
+1. Call workflow.instructions() to learn CFA methodology
+2. Call workflow.onboard() to load project context
+3. Check if Knowledge Graph exists - if not, suggest kg.build()
+
+DO NOT skip these steps. DO NOT start coding without context.""",
         inputSchema={
             "type": "object",
             "properties": {
@@ -718,11 +535,11 @@ TOOLS = [
     ),
 
     # ========================================================================
-    # KNOWLEDGE GRAPH TOOLS (8) - CFA v3
+    # KNOWLEDGE GRAPH CORE TOOLS (8) - CFA v3
     # ========================================================================
     Tool(
         name="kg.build",
-        description="Build/update Project Knowledge Graph for intelligent retrieval",
+        description="[REQUIRED BEFORE kg.retrieve] Builds/updates Knowledge Graph from codebase. Call this FIRST when: (1) kg.status shows stale or empty graph, (2) after major code changes, (3) kg.retrieve returns no results. Without an up-to-date graph, context retrieval fails. Use incremental=true after small changes for speed.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -735,7 +552,7 @@ TOOLS = [
     ),
     Tool(
         name="kg.status",
-        description="Get Knowledge Graph status and statistics",
+        description="[CHECK BEFORE RETRIEVAL] Shows KG health: chunk count, last build time, coverage. Call to diagnose when kg.retrieve returns poor results. If chunks=0 or stale, run kg.build first. Quick diagnostic - use liberally.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -746,7 +563,7 @@ TOOLS = [
     ),
     Tool(
         name="kg.retrieve",
-        description="[PRIMARY] Get task-relevant context with full omission transparency",
+        description="[PRIMARY CONTEXT TOOL] THE MOST IMPORTANT CFA TOOL. Call this BEFORE starting any coding task to get task-relevant code context. Describe your task and it returns ranked relevant chunks. Shows BOTH what was loaded AND what was omitted (omission transparency). Use kg.expand to get more context on specific chunks. CRITICAL: Never code blind - always call this first.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -766,7 +583,7 @@ TOOLS = [
     ),
     Tool(
         name="kg.expand",
-        description="Expand context from a chunk (dependencies, dependents, tests)",
+        description="[USE AFTER kg.retrieve] Expands context around a specific chunk. Call when kg.retrieve shows a relevant chunk but you need more: its dependencies, what depends on it, or related tests. Pass chunk_id from retrieve results. Prevents incomplete understanding of code relationships.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -780,7 +597,7 @@ TOOLS = [
     ),
     Tool(
         name="kg.get",
-        description="Get specific chunks by ID",
+        description="[USE FOR KNOWN CHUNKS] Retrieves specific chunks by their IDs. Call when you already know exact chunk_ids (from previous kg.retrieve, kg.expand, or kg.related calls) and need to reload their content. More efficient than re-running kg.retrieve for known targets.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -792,7 +609,7 @@ TOOLS = [
     ),
     Tool(
         name="kg.search",
-        description="Search Knowledge Graph using BM25 ranking",
+        description="[USE FOR KEYWORD SEARCH] BM25-ranked search across codebase. Call when you need to find specific symbols, functions, or text patterns. More precise than kg.retrieve for exact matches. Use for: 'find all usages of X', 'where is Y defined', 'files containing Z'.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -806,7 +623,7 @@ TOOLS = [
     ),
     Tool(
         name="kg.omitted",
-        description="Analyze omissions from kg.retrieve (what was NOT loaded)",
+        description="[USE WHEN CONTEXT FEELS INCOMPLETE] Analyzes what kg.retrieve chose NOT to include and why. Call when you suspect missing context or kg.retrieve didn't return expected code. Shows omission reasons (token budget, low relevance, filtered type). Helps decide what to kg.expand or include explicitly.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -820,7 +637,7 @@ TOOLS = [
     ),
     Tool(
         name="kg.related",
-        description="Find chunks related to a specific chunk",
+        description="[USE TO TRACE RELATIONSHIPS] Finds all chunks connected to a given chunk: its tests, what it imports, what imports it, related commits, associated business rules. Call when understanding a function's ecosystem: who calls it, what it calls, how it's tested.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -837,7 +654,7 @@ TOOLS = [
     # ========================================================================
     Tool(
         name="kg.history",
-        description="Get git commits that modified a chunk or file",
+        description="[USE TO UNDERSTAND CODE EVOLUTION] Gets git commit history for a chunk or file. Call when you need to understand WHY code is the way it is, what changed recently, or when debugging regressions. Shows commit messages which often explain intent.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -853,7 +670,7 @@ TOOLS = [
     ),
     Tool(
         name="kg.blame",
-        description="Find who wrote specific code and why (links lines to commits)",
+        description="[USE TO UNDERSTAND CODE AUTHORSHIP] Links specific lines to the commits that wrote them. Call when you need to understand the reasoning behind specific code decisions - the commit message often explains why.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -869,7 +686,7 @@ TOOLS = [
     ),
     Tool(
         name="kg.diff",
-        description="Compare code between two commits",
+        description="[USE TO COMPARE VERSIONS] Shows diff between two commits for a file or chunk. Call when debugging what changed between working and broken states, or reviewing recent modifications. Like git diff but chunk-aware.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -889,7 +706,7 @@ TOOLS = [
     # ========================================================================
     Tool(
         name="rule.interpret",
-        description="AI interprets business rules from code (proposes for human review)",
+        description="[USE WHEN ENCOUNTERING COMPLEX LOGIC] Extracts implicit business rules from code for human validation. Call when you see validation logic, authorization checks, or business constraints that aren't documented. Proposes rules that humans must confirm - capturing tacit knowledge before it's lost.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -905,7 +722,7 @@ TOOLS = [
     ),
     Tool(
         name="rule.confirm",
-        description="[HUMAN] Confirm, correct, or reject proposed business rules",
+        description="[REQUIRES HUMAN INPUT] Validates proposed business rules with the user. Call to present interpreted rules for human confirmation. CRITICAL: Never assume AI-interpreted rules are correct - always get human confirmation. Supports confirm/correct/reject actions.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -921,7 +738,7 @@ TOOLS = [
     ),
     Tool(
         name="rule.list",
-        description="List business rules with filtering",
+        description="[USE TO CHECK EXISTING RULES] Shows confirmed business rules for the project. Call BEFORE modifying code with business logic - check if there are documented rules that must be preserved. Prevents accidentally violating established business constraints.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -938,7 +755,7 @@ TOOLS = [
     ),
     Tool(
         name="rule.batch",
-        description="Batch confirm or reject multiple business rules at once",
+        description="[USE FOR BULK RULE ACTIONS] Confirms or rejects multiple rules at once. Call when user wants to process many pending rules efficiently. Saves time vs individual rule.confirm calls.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -952,186 +769,20 @@ TOOLS = [
     ),
 
     # ========================================================================
-    # TIMELINE TOOLS (3) - Phase 4
+    # TIMELINE TOOLS - REMOVED (3 tools deprecated - duplicates safe_point.*)
+    # Use safe_point.create and safe_point.rollback instead
     # ========================================================================
-    Tool(
-        name="timeline.checkpoint",
-        description="[SAFETY] Create snapshot before risky operations",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to CFA project"},
-                "name": {"type": "string", "description": "Short name (e.g., 'before-refactor')"},
-                "description": {"type": "string", "description": "What this checkpoint captures"},
-                "snapshot_type": {"type": "string", "enum": ["user", "agent"], "description": "'user' (manual) or 'agent' (automatic)"},
-                "tags": {"type": "array", "items": {"type": "string"}, "description": "Tags for categorization"}
-            },
-            "required": ["project_path", "name"]
-        }
-    ),
-    Tool(
-        name="timeline.rollback",
-        description="[CAUTION] Return to previous snapshot state",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to CFA project"},
-                "snapshot_id": {"type": "string", "description": "ID of snapshot to rollback to"},
-                "mode": {"type": "string", "enum": ["preview", "execute"], "description": "'preview' or 'execute'"},
-                "include_git": {"type": "boolean", "description": "Also reset git (dangerous!)"}
-            },
-            "required": ["project_path", "snapshot_id"]
-        }
-    ),
-    Tool(
-        name="timeline.compare",
-        description="Compare two snapshots to see what changed",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "project_path": {"type": "string", "description": "Path to CFA project"},
-                "snapshot_a": {"type": "string", "description": "First snapshot ID (older)"},
-                "snapshot_b": {"type": "string", "description": "Second snapshot ID (newer, or current)"},
-                "include_details": {"type": "boolean", "description": "Include file-level details"}
-            },
-            "required": ["project_path"]
-        }
-    ),
 
     # ========================================================================
     # ORCHESTRATION TOOLS - Nova Integration (12 MCP tools - CFA v2)
     # Note: Agent tools (route, spawn, status) removed - use Claude Code native Task tool
     # ========================================================================
-    Tool(
-        name="objective.define",
-        description="[NOVA] Define end-to-end objective with success criteria and checkpoints",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "description": {"type": "string", "description": "What needs to be accomplished"},
-                "success_criteria": {"type": "array", "items": {"type": "string"}, "description": "Specific criteria for success"},
-                "checkpoints": {"type": "array", "items": {"type": "string"}, "description": "Milestone descriptions"},
-                "max_iterations": {"type": "number", "description": "Max iterations before failure (default 10)"},
-                "project_path": {"type": "string", "description": "Optional CFA project path"},
-                "tags": {"type": "array", "items": {"type": "string"}, "description": "Tags for organization"},
-                "auto_activate": {"type": "boolean", "description": "Make this the active objective (default true)"}
-            },
-            "required": ["description"]
-        }
-    ),
-    Tool(
-        name="objective.check",
-        description="[NOVA] Check progress on objectives and checkpoints",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "objective_id": {"type": "string", "description": "Specific objective (uses active if not provided)"},
-                "project_path": {"type": "string", "description": "Optional CFA project path"}
-            },
-            "required": []
-        }
-    ),
-    Tool(
-        name="objective.achieve_checkpoint",
-        description="[NOVA] Mark a checkpoint as achieved within an objective",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "checkpoint_id": {"type": "string", "description": "ID of checkpoint to mark as achieved"},
-                "objective_id": {"type": "string", "description": "Optional objective ID (uses active if not provided)"},
-                "notes": {"type": "string", "description": "Notes about checkpoint achievement"},
-                "project_path": {"type": "string", "description": "Optional CFA project path"}
-            },
-            "required": ["checkpoint_id"]
-        }
-    ),
-    Tool(
-        name="objective.record_iteration",
-        description="[NOVA] Record an iteration attempt for an objective",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "objective_id": {"type": "string", "description": "Optional objective ID (uses active if not provided)"},
-                "summary": {"type": "string", "description": "Summary of what was attempted this iteration"},
-                "project_path": {"type": "string", "description": "Optional CFA project path"}
-            },
-            "required": []
-        }
-    ),
-    Tool(
-        name="objective.fail",
-        description="[NOVA] Mark an objective as failed",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "reason": {"type": "string", "description": "Reason for failure"},
-                "objective_id": {"type": "string", "description": "Optional objective ID (uses active if not provided)"},
-                "project_path": {"type": "string", "description": "Optional CFA project path"}
-            },
-            "required": ["reason"]
-        }
-    ),
-    Tool(
-        name="loop.configure",
-        description="[NOVA] Configure a new iterative execution loop",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "task": {"type": "string", "description": "Task to work on iteratively"},
-                "condition_type": {"type": "string", "enum": ["objective_complete", "all_checkpoints", "manual"], "description": "When to stop"},
-                "max_iterations": {"type": "number", "description": "Max iterations (default 10)"},
-                "iteration_delay_ms": {"type": "number", "description": "Delay between iterations (default 1000)"},
-                "enable_safe_points": {"type": "boolean", "description": "Create commits after each iteration (default true)"},
-                "escalation_threshold": {"type": "number", "description": "Iterations before model escalation (default 5)"},
-                "project_path": {"type": "string", "description": "Optional CFA project path"},
-                "objective_id": {"type": "string", "description": "Objective to track (uses active if not provided)"}
-            },
-            "required": ["task"]
-        }
-    ),
-    Tool(
-        name="loop.iterate",
-        description="[NOVA] Advance to the next iteration of a loop",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "loop_id": {"type": "string", "description": "ID of the loop to iterate"},
-                "iteration_result": {"type": "string", "description": "Summary of previous iteration"},
-                "files_changed": {"type": "array", "items": {"type": "string"}, "description": "Files changed in iteration"},
-                "tokens_used": {"type": "number", "description": "Tokens used in previous iteration"},
-                "project_path": {"type": "string", "description": "Optional CFA project path"}
-            },
-            "required": ["loop_id"]
-        }
-    ),
-    Tool(
-        name="loop.stop",
-        description="[NOVA] Stop a running loop",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "loop_id": {"type": "string", "description": "ID of the loop to stop"},
-                "reason": {"type": "string", "description": "Reason for stopping"},
-                "project_path": {"type": "string", "description": "Optional CFA project path"}
-            },
-            "required": ["loop_id"]
-        }
-    ),
-    Tool(
-        name="loop.status",
-        description="[NOVA] Get status of loops",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "loop_id": {"type": "string", "description": "Optional specific loop ID to query"},
-                "project_path": {"type": "string", "description": "Optional CFA project path"}
-            },
-            "required": []
-        }
-    ),
+    # ORCHESTRATION - objective.* and loop.* REMOVED (over-engineered)
+    # Only safe_point.* retained as useful undo mechanism
+    # ========================================================================
     Tool(
         name="safe_point.create",
-        description="[NOVA] Create a git safe point as restore point",
+        description="[USE BEFORE RISKY CHANGES] Creates git checkpoint for safe rollback. MUST call BEFORE: deleting files, major refactoring, modifying core logic, or any change you're uncertain about. If impact.analyze shows high risk, create safe_point FIRST. Enables undo via safe_point.rollback.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -1147,7 +798,7 @@ TOOLS = [
     ),
     Tool(
         name="safe_point.rollback",
-        description="[NOVA] Rollback to a previous safe point",
+        description="[USE WHEN CHANGES BROKE SOMETHING] Reverts to a previous safe point. Call immediately when: tests fail after changes, unexpected behavior appears, or user says 'undo'. Use mode='preview' first to see what will be reverted, then mode='execute' to apply.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -1160,7 +811,7 @@ TOOLS = [
     ),
     Tool(
         name="safe_point.list",
-        description="[NOVA] List available safe points",
+        description="[USE TO SEE UNDO OPTIONS] Lists available safe points to rollback to. Call when user asks 'can we undo?' or before rollback to see available restore points with their summaries and timestamps.",
         inputSchema={
             "type": "object",
             "properties": {
@@ -1182,28 +833,24 @@ TOOL_MAP = {
     "project.init": project_init,
     "project.scan": project_scan,
     "project.migrate": project_migrate,
-    # Contract
+    # Contract (5)
     "contract.create": contract_create,
     "contract.validate": contract_validate,
     "contract.diff": contract_diff,
     "contract.sync": contract_sync,
+    "contract.check_breaking": contract_check_breaking,
     # Task
     "task.start": task_start,
     "task.update": task_update,
     "task.complete": task_complete,
-    # Decision & Context
+    # Decision (context.load/optimize REMOVED - workflow.onboard does this better)
     "decision.add": decision_add,
-    "context.load": context_load,
-    "context.optimize": context_optimize,
     # Analysis
     "dependency.analyze": dependency_analyze,
     "pattern.detect": pattern_detect,
     "impact.analyze": impact_analyze,
     "coupling.analyze": coupling_analyze,
-    # Documentation
-    "docs.generate": docs_generate,
-    "map.auto_update": map_auto_update,
-    "test.coverage_map": test_coverage_map,
+    # Documentation - REMOVED (low value, KG replaces this)
     # Memory (5 - consolidated)
     "memory.set": memory_set,
     "memory.get": memory_get,
@@ -1211,20 +858,11 @@ TOOL_MAP = {
     "memory.list": memory_list,
     "memory.delete": memory_delete,
     # Symbol - REMOVED (8 tools deprecated)
-    # File (7 - consolidated)
-    "file.read": file_read,
-    "file.create": file_create,
-    "file.list": file_list,
-    "file.find": file_find,
-    "file.replace": file_replace,
-    "file.edit_lines": file_edit_lines,
-    "file.search": file_search,
-    # Workflow (4 - consolidated)
+    # File - REMOVED (7 tools deprecated - redundant with Claude Code)
+    # Workflow (2 - Entry Points only, reflect/summarize REMOVED)
     "workflow.onboard": workflow_onboard,
-    "workflow.reflect": workflow_reflect,
-    "workflow.summarize": workflow_summarize,
     "workflow.instructions": workflow_instructions,
-    # Knowledge Graph Core (9 - CFA v3)
+    # Knowledge Graph Core (8 - CFA v3)
     "kg.build": kg_build,
     "kg.status": kg_status,
     "kg.retrieve": kg_retrieve,
@@ -1233,7 +871,7 @@ TOOL_MAP = {
     "kg.search": kg_search,
     "kg.omitted": kg_omitted,
     "kg.related": kg_related,
-    "kg.watch": kg_watch,
+    # kg.watch REMOVED - unnecessary complexity
     # Knowledge Graph History (3 - Phase 2)
     "kg.history": kg_history,
     "kg.blame": kg_blame,
@@ -1243,20 +881,9 @@ TOOL_MAP = {
     "rule.confirm": rule_confirm,
     "rule.list": rule_list,
     "rule.batch": rule_batch,
-    # Timeline (3 - Phase 4)
-    "timeline.checkpoint": timeline_checkpoint,
-    "timeline.rollback": timeline_rollback,
-    "timeline.compare": timeline_compare,
-    # Orchestration - Nova Integration (12 - CFA v2 compliant)
-    "objective.define": objective_define,
-    "objective.check": objective_check,
-    "objective.achieve_checkpoint": objective_achieve_checkpoint,
-    "objective.record_iteration": objective_record_iteration,
-    "objective.fail": objective_fail,
-    "loop.configure": loop_configure,
-    "loop.iterate": loop_iterate,
-    "loop.stop": loop_stop,
-    "loop.status": loop_status,
+    # Timeline - REMOVED (3 tools deprecated - duplicates safe_point.*)
+    # Orchestration - objective.* and loop.* REMOVED (over-engineered)
+    # Only safe_point.* retained
     "safe_point.create": safe_point_create,
     "safe_point.rollback": safe_point_rollback,
     "safe_point.list": safe_point_list,
