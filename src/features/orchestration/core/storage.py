@@ -125,9 +125,34 @@ class OrchestrationStorage:
                 )
             """)
             
+            # === SYSTEM PROMPTS TABLE ===
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS system_prompts (
+                    id TEXT PRIMARY KEY,
+                    content TEXT NOT NULL,
+                    category TEXT,
+                    description TEXT,
+                    is_active INTEGER DEFAULT 0,
+                    scope TEXT DEFAULT 'project',
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                )
+            """)
+
+            # === MCP CONFIGS TABLE ===
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS mcp_configs (
+                    server_name TEXT PRIMARY KEY,
+                    config TEXT NOT NULL,
+                    enabled INTEGER DEFAULT 1,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                )
+            """)
+
             # === INDEXES ===
             cursor.execute("""
-                CREATE INDEX IF NOT EXISTS idx_instances_status 
+                CREATE INDEX IF NOT EXISTS idx_instances_status
                 ON agent_instances(status)
             """)
             cursor.execute("""
@@ -622,5 +647,168 @@ class OrchestrationStorage:
                     files_changed=row[4],
                     project_path=row[5]
                 ))
-            
+
             return safe_points
+
+    # === SYSTEM PROMPTS METHODS ===
+
+    def create_prompt(self, prompt_id: str, content: str, category: Optional[str] = None,
+                      description: Optional[str] = None) -> None:
+        """Create or update a system prompt."""
+        now = datetime.now().isoformat()
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT OR REPLACE INTO system_prompts
+                (id, content, category, description, is_active, scope, created_at, updated_at)
+                VALUES (?, ?, ?, ?,
+                    COALESCE((SELECT is_active FROM system_prompts WHERE id = ?), 0),
+                    COALESCE((SELECT scope FROM system_prompts WHERE id = ?), 'project'),
+                    COALESCE((SELECT created_at FROM system_prompts WHERE id = ?), ?),
+                    ?)
+            """, (prompt_id, content, category, description, prompt_id, prompt_id, prompt_id, now, now))
+            conn.commit()
+
+    def get_prompt(self, prompt_id: str) -> Optional[Dict[str, Any]]:
+        """Get a system prompt by ID."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, content, category, description, is_active, scope, created_at, updated_at
+                FROM system_prompts WHERE id = ?
+            """, (prompt_id,))
+            row = cursor.fetchone()
+            if row:
+                return {
+                    "id": row[0], "content": row[1], "category": row[2],
+                    "description": row[3], "is_active": bool(row[4]), "scope": row[5],
+                    "created_at": row[6], "updated_at": row[7]
+                }
+            return None
+
+    def list_prompts(self, category: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List all system prompts, optionally filtered by category."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            if category:
+                cursor.execute("""
+                    SELECT id, content, category, description, is_active, scope, created_at, updated_at
+                    FROM system_prompts WHERE category = ? ORDER BY id
+                """, (category,))
+            else:
+                cursor.execute("""
+                    SELECT id, content, category, description, is_active, scope, created_at, updated_at
+                    FROM system_prompts ORDER BY id
+                """)
+            rows = cursor.fetchall()
+            return [{
+                "id": row[0], "content": row[1], "category": row[2],
+                "description": row[3], "is_active": bool(row[4]), "scope": row[5],
+                "created_at": row[6], "updated_at": row[7]
+            } for row in rows]
+
+    def activate_prompt(self, prompt_id: str, scope: str = "project") -> bool:
+        """Activate a prompt and deactivate others in the same scope."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            # Deactivate all prompts in this scope
+            cursor.execute("""
+                UPDATE system_prompts SET is_active = 0, updated_at = ?
+                WHERE scope = ?
+            """, (datetime.now().isoformat(), scope))
+            # Activate the target prompt
+            cursor.execute("""
+                UPDATE system_prompts SET is_active = 1, scope = ?, updated_at = ?
+                WHERE id = ?
+            """, (scope, datetime.now().isoformat(), prompt_id))
+            updated = cursor.rowcount > 0
+            conn.commit()
+            return updated
+
+    def get_active_prompts(self) -> List[Dict[str, Any]]:
+        """Get all active prompts."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, content, category, description, is_active, scope, created_at, updated_at
+                FROM system_prompts WHERE is_active = 1 ORDER BY scope, id
+            """)
+            rows = cursor.fetchall()
+            return [{
+                "id": row[0], "content": row[1], "category": row[2],
+                "description": row[3], "is_active": bool(row[4]), "scope": row[5],
+                "created_at": row[6], "updated_at": row[7]
+            } for row in rows]
+
+    # === MCP CONFIG METHODS ===
+
+    def create_mcp_config(self, server_name: str, config: Dict[str, Any],
+                          enabled: bool = True) -> None:
+        """Create or update an MCP server configuration."""
+        now = datetime.now().isoformat()
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT OR REPLACE INTO mcp_configs
+                (server_name, config, enabled, created_at, updated_at)
+                VALUES (?, ?, ?,
+                    COALESCE((SELECT created_at FROM mcp_configs WHERE server_name = ?), ?),
+                    ?)
+            """, (server_name, json.dumps(config), 1 if enabled else 0, server_name, now, now))
+            conn.commit()
+
+    def get_mcp_config(self, server_name: str) -> Optional[Dict[str, Any]]:
+        """Get an MCP config by server name."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT server_name, config, enabled, created_at, updated_at
+                FROM mcp_configs WHERE server_name = ?
+            """, (server_name,))
+            row = cursor.fetchone()
+            if row:
+                return {
+                    "server_name": row[0], "config": json.loads(row[1]),
+                    "enabled": bool(row[2]), "created_at": row[3], "updated_at": row[4]
+                }
+            return None
+
+    def list_mcp_configs(self, include_disabled: bool = False) -> List[Dict[str, Any]]:
+        """List all MCP configurations."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            if include_disabled:
+                cursor.execute("""
+                    SELECT server_name, config, enabled, created_at, updated_at
+                    FROM mcp_configs ORDER BY server_name
+                """)
+            else:
+                cursor.execute("""
+                    SELECT server_name, config, enabled, created_at, updated_at
+                    FROM mcp_configs WHERE enabled = 1 ORDER BY server_name
+                """)
+            rows = cursor.fetchall()
+            return [{
+                "server_name": row[0], "config": json.loads(row[1]),
+                "enabled": bool(row[2]), "created_at": row[3], "updated_at": row[4]
+            } for row in rows]
+
+    def update_mcp_config(self, server_name: str, config: Optional[Dict[str, Any]] = None,
+                          enabled: Optional[bool] = None) -> bool:
+        """Update an MCP config."""
+        existing = self.get_mcp_config(server_name)
+        if not existing:
+            return False
+
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            new_config = config if config is not None else existing["config"]
+            new_enabled = enabled if enabled is not None else existing["enabled"]
+            cursor.execute("""
+                UPDATE mcp_configs SET config = ?, enabled = ?, updated_at = ?
+                WHERE server_name = ?
+            """, (json.dumps(new_config), 1 if new_enabled else 0,
+                  datetime.now().isoformat(), server_name))
+            updated = cursor.rowcount > 0
+            conn.commit()
+            return updated
