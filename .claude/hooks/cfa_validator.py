@@ -249,59 +249,31 @@ def handle_stop(data: Dict[str, Any]) -> int:
     """
     Handle session stop event.
 
-    BLOCKS session if pending CFA actions exist.
-    Exit code 2 = BLOCKED, user must complete actions first.
+    Informational only - actual enforcement happens in pre-commit hook.
     """
     state = load_state()
     cwd = data.get("cwd", os.getcwd())
 
-    # Only enforce on CFA projects
+    # Only on CFA projects
     if not is_cfa_project(cwd):
         return 0
 
-    reminders = []
-    blocking_issues = []
-
-    # Check if files were modified but kg.build not run
-    if state.get("kg_build_pending", False):
-        files = state.get("files_modified", [])
-        reminders.append(f"- `kg.build(incremental=true)` - {len(files)} file(s) modified")
-        blocking_issues.append("kg_build_pending")
-
-    # Check if functions were modified but not checked
-    funcs = state.get("functions_modified", [])
-    if funcs:
-        reminders.append(f"- `contract.check_breaking` for: {', '.join(funcs[:3])}")
-        blocking_issues.append("breaking_changes_unchecked")
-
-    if reminders:
-        # BLOCKING: Session cannot end until these are resolved
-        output_decision(
-            "block",  # 'block' decision
-            "BLOCKED: Pending CFA actions must be completed",
-            f"""
-## ⛔ CFA SESSION BLOCKED - Pending Actions Required
-
-You cannot end this session until you complete:
-
-{chr(10).join(reminders)}
-
-Also recommended:
-- `memory.set(key="...", value="...", tags=["..."])` for any learnings
-- `safe_point.create(task_summary="...")` if significant changes were made
-
-**Resume the session and run these commands to unblock.**
-"""
-        )
-        # Exit code 2 = BLOCK this action
-        return 2
-
-    # All checks passed - session can end
+    # Just a reminder - enforcement is in .git/hooks/pre-commit
     output_decision(
         "approve",
-        "CFA session checklist complete",
-        "✅ Session closed cleanly - all CFA actions completed."
+        "CFA session info",
+        """
+## ℹ️ CFA Enforcement via Pre-commit Hook
+
+Mandatory documentation is enforced when you commit:
+- Code changes → kg.build required
+- Function changes → contract.check_breaking required
+- Significant changes → memory.set recommended
+
+This ensures all changes are properly documented before being saved.
+"""
     )
+
     return 0
 
 
