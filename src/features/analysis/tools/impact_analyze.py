@@ -83,11 +83,14 @@ async def impact_analyze(
                 "error": f"No impl directory found at {impl_dir.relative_to(path)}"
             }
 
-        # Normalize file path based on actual impl location
-        impl_prefix = str(impl_dir.relative_to(path))
+        # Normalize file path - check if it's a relative path that exists
         target_path = file_path
-        if not target_path.startswith(impl_prefix):
-            target_path = f"{impl_prefix}/{target_path}"
+
+        # If the file path doesn't contain directory separators, assume it's in impl_dir
+        if "/" not in file_path and "\\" not in file_path:
+            impl_prefix = str(impl_dir.relative_to(path))
+            target_path = f"{impl_prefix}/{file_path}"
+        # Otherwise, use the path as-is (it's already a full relative path)
 
         # Analyze all files
         registry = get_registry()

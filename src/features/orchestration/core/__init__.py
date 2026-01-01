@@ -1,61 +1,15 @@
 """
-Orchestration Core Module - Business Logic Layer
+Orchestration Core Module - Safe Points Only
 
-Nova Agent Orchestration System - CFA compliant architecture.
-Multi-model AI task routing and execution (Haiku/Sonnet/Opus).
+Provides git-based checkpoints for safe rollback.
 """
 
-# Models
-from .models import (
-    # Enums
-    ModelType,
-    TaskComplexity,
-    InstanceStatus,
-    ObjectiveStatus,
-    LoopStatus,
-    # Dataclasses
-    TaskAnalysis,
-    RoutingDecision,
-    AgentInstance,
-    Checkpoint,
-    Objective,
-    ExecutionLoop,
-    SafePoint,
-    IterationRecord
-)
-
-# Storage
+from .models import SafePoint
 from .storage import OrchestrationStorage
-
-# Core managers
-from .router import TaskRouter
-from .executor import AgentExecutor
-from .objective_manager import ObjectiveManager
-from .loop_manager import LoopManager
 from .safe_points import SafePointManager
 
-
 __all__ = [
-    # Enums
-    "ModelType",
-    "TaskComplexity",
-    "InstanceStatus",
-    "ObjectiveStatus",
-    "LoopStatus",
-    # Dataclasses
-    "TaskAnalysis",
-    "RoutingDecision",
-    "AgentInstance",
-    "Checkpoint",
-    "Objective",
-    "ExecutionLoop",
     "SafePoint",
-    "IterationRecord",
-    # Core classes
     "OrchestrationStorage",
-    "TaskRouter",
-    "AgentExecutor",
-    "ObjectiveManager",
-    "LoopManager",
     "SafePointManager",
 ]

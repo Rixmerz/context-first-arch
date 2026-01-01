@@ -48,11 +48,9 @@ async def contract_create(
         contracts_dir = path / "contracts"
         impl_path = path / impl_file
 
+        # Auto-create contracts directory if it doesn't exist
         if not contracts_dir.exists():
-            return {
-                "success": False,
-                "error": f"Not a CFA project: {project_path} (missing contracts/)"
-            }
+            contracts_dir.mkdir(parents=True, exist_ok=True)
 
         if not impl_path.exists():
             return {

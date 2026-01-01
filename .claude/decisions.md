@@ -88,3 +88,8 @@
 3. Hybrid approach
 
 **Current**: Documented but not implemented
+
+## 2026-01-01: Test Decision
+**Context**: Testing decision tool
+**Decision**: Use this for testing
+**Reason**: Verification purposes

@@ -15,11 +15,9 @@ features/knowledge_graph/
 │   ├── retriever.py        # BM25 + graph retrieval
 │   ├── compressor.py       # Token optimization
 │   ├── git_chunker.py      # Git history integration
-│   ├── business_rules.py   # Rule extraction
-│   ├── timeline.py         # Snapshot management
-│   └── watcher.py          # File watching
+│   └── business_rules.py   # Rule extraction
 ├── tools/
-│   └── kg_*.py             # 12 MCP tools
+│   └── kg_*.py             # 6 MCP tools (consolidated)
 └── tests/
 ```
 
@@ -55,10 +53,6 @@ from .core import (
     GitChunker,
     # Business Rules
     BusinessRule, BusinessRuleStore, RuleStatus, RuleCategory, interpret_rules_from_code,
-    # Timeline
-    Snapshot, SnapshotType, FileState, TimelineManager,
-    # Watcher
-    KGWatcher, get_watcher, start_watcher, stop_watcher, get_watcher_status,
 )
 
 __all__ = [
@@ -80,8 +74,4 @@ __all__ = [
     "GitChunker",
     # Business Rules
     "BusinessRule", "BusinessRuleStore", "RuleStatus", "RuleCategory", "interpret_rules_from_code",
-    # Timeline
-    "Snapshot", "SnapshotType", "FileState", "TimelineManager",
-    # Watcher
-    "KGWatcher", "get_watcher", "start_watcher", "stop_watcher", "get_watcher_status",
 ]

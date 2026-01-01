@@ -41,6 +41,9 @@ class CFAProject:
     @property
     def impl_dir(self) -> Path:
         """Get impl directory based on CFA version and source_root setting."""
+        # v3: src/features/ (feature-based architecture)
+        if self.cfa_version.startswith("3"):
+            return self.path / self.source_root / "features"
         # v2: src/impl/ (or custom source_root)
         if self.cfa_version.startswith("2"):
             return self.path / self.source_root / "impl"
@@ -48,15 +51,20 @@ class CFAProject:
         return self.path / "impl"
 
     @property
+    def features_dir(self) -> Path:
+        """Get features directory (CFA v3 only)."""
+        return self.path / self.source_root / "features"
+
+    @property
     def shared_dir(self) -> Path:
         """Get shared directory based on CFA version."""
-        if self.cfa_version.startswith("2"):
+        if self.cfa_version.startswith("2") or self.cfa_version.startswith("3"):
             return self.path / self.source_root / "shared"
         return self.path / "shared"
 
     @property
     def app_dir(self) -> Path:
-        """Get application layer directory (v2 only)."""
+        """Get application layer directory (v2/v3 only)."""
         return self.path / self.source_root / "app"
 
     @property
@@ -122,8 +130,9 @@ def create_project(
     for directory in directories:
         directory.mkdir(parents=True, exist_ok=True)
 
-    # Load templates
-    template_dir = Path(__file__).parent.parent / "templates"
+    # Load templates - templates/ is at project root (not src/templates/)
+    # Path: src/core/project.py -> src/core -> src -> project_root/templates
+    template_dir = Path(__file__).parent.parent.parent / "templates"
 
     # Create map.md
     map_template = (template_dir / "map.md.template").read_text()
@@ -331,7 +340,7 @@ def get_project_paths(project_path: str | Path) -> Dict[str, Path]:
     Get standardized paths for a CFA project.
 
     This is the recommended way for tools to access project directories.
-    Automatically handles both v1 and v2 structures.
+    Automatically handles v1, v2, and v3 structures.
 
     Args:
         project_path: Path to CFA project
@@ -339,14 +348,15 @@ def get_project_paths(project_path: str | Path) -> Dict[str, Path]:
     Returns:
         Dictionary with paths:
             - root: Project root
-            - impl_dir: Implementation directory
+            - impl_dir: Implementation directory (features_dir for v3)
             - shared_dir: Shared code directory
             - contracts_dir: Contracts directory
             - claude_dir: .claude directory
+            - features_dir: Features directory (v3 only, alias of impl_dir)
 
     Example:
         paths = get_project_paths("/path/to/project")
-        impl_dir = paths["impl_dir"]  # Works for both v1 and v2
+        impl_dir = paths["impl_dir"]  # Works for v1, v2, and v3
     """
     path = Path(project_path)
 
@@ -354,16 +364,30 @@ def get_project_paths(project_path: str | Path) -> Dict[str, Path]:
     project = load_project(str(path))
 
     if project:
-        return {
+        paths = {
             "root": path,
             "impl_dir": project.impl_dir,
             "shared_dir": project.shared_dir,
             "contracts_dir": project.contracts_dir,
             "claude_dir": project.claude_dir,
         }
+        # Add features_dir for v3 projects
+        if project.cfa_version.startswith("3"):
+            paths["features_dir"] = project.features_dir
+        return paths
 
     # Fallback: Detect structure by checking what exists
-    if (path / "src" / "impl").exists():
+    if (path / "src" / "features").exists():
+        # v3 structure (feature-based)
+        return {
+            "root": path,
+            "impl_dir": path / "src" / "features",
+            "features_dir": path / "src" / "features",
+            "shared_dir": path / "src" / "shared",
+            "contracts_dir": path / "contracts",
+            "claude_dir": path / ".claude",
+        }
+    elif (path / "src" / "impl").exists():
         # v2 structure
         return {
             "root": path,

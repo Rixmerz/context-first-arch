@@ -1,5 +1,5 @@
 {
-  "cfa_version": "2.0",
+  "cfa_version": "3.0",
   "source_root": "src",
   "framework": "python-mcp",
   "project_type": "mcp-server"

@@ -1,7 +1,7 @@
 """
 Knowledge Graph Core Module - Business Logic Layer
 
-Graph-based context retrieval with 10 chunk types,
+Graph-based context retrieval with chunking,
 multi-hop traversal, and omission transparency.
 """
 
@@ -41,19 +41,6 @@ from .business_rules import (
     RuleCategory,
     interpret_rules_from_code,
 )
-from .timeline import (
-    Snapshot,
-    SnapshotType,
-    FileState,
-    TimelineManager,
-)
-from .watcher import (
-    KGWatcher,
-    get_watcher,
-    start_watcher,
-    stop_watcher,
-    get_watcher_status,
-)
 
 __all__ = [
     # Enums
@@ -74,8 +61,4 @@ __all__ = [
     "GitChunker",
     # Business Rules
     "BusinessRule", "BusinessRuleStore", "RuleStatus", "RuleCategory", "interpret_rules_from_code",
-    # Timeline
-    "Snapshot", "SnapshotType", "FileState", "TimelineManager",
-    # Watcher
-    "KGWatcher", "get_watcher", "start_watcher", "stop_watcher", "get_watcher_status",
 ]

@@ -135,7 +135,7 @@ class SafePointManager:
                 commit_hash=commit_result["commit_hash"],
                 message=task_summary,
                 timestamp=datetime.now(),
-                files_changed=files_to_stage,
+                files_changed=len(files_to_stage),  # Store count, not list (model expects int)
                 project_path=project_path
             )
 

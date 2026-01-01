@@ -1,86 +1,39 @@
 """
-Orchestration Feature - Nova Agent Orchestration
+Orchestration Feature - Safe Points
 
-Multi-model AI task routing and execution system (Haiku/Sonnet/Opus).
+Git-based checkpoints for safe rollback during risky changes.
 
 ## Architecture (CFA v2 Pattern)
 
 ```
 features/orchestration/
 ├── core/
-│   ├── models.py           # Enums and dataclasses
+│   ├── models.py           # SafePoint dataclass
 │   ├── storage.py          # SQLite persistence
-│   ├── router.py           # Task routing logic
-│   ├── executor.py         # Agent lifecycle
-│   ├── objective_manager.py # Goal tracking
-│   ├── loop_manager.py     # Iterative loops
-│   └── safe_points.py      # Git rollback
-├── tools/
-│   ├── agent_*.py          # 3 agent tools
-│   ├── objective_*.py      # 5 objective tools
-│   ├── loop_*.py           # 4 loop tools
-│   └── safe_point_*.py     # 3 safe point tools
-└── tests/
+│   └── safe_points.py      # SafePointManager
+└── tools/
+    └── safe_point_*.py     # 3 MCP tools
 ```
 
 ## Usage
 
 ```python
-from src.features.orchestration import TaskRouter, ModelType
+from src.features.orchestration import SafePointManager
 
-# Route a task to optimal model
-router = TaskRouter()
-decision = router.route_task("Implement authentication")
-print(decision.recommended_model)  # ModelType.SONNET
+manager = SafePointManager(project_path)
+manager.create(task_summary="Before refactoring")
+# ... make changes ...
+manager.rollback()  # Revert if needed
 ```
+
+Note: Agent, Objective, Loop, and Config tools removed.
+Use Claude Code's native TodoWrite and Task tools instead.
 """
 
-from .core import (
-    # Enums
-    ModelType,
-    TaskComplexity,
-    InstanceStatus,
-    ObjectiveStatus,
-    LoopStatus,
-    # Dataclasses
-    TaskAnalysis,
-    RoutingDecision,
-    AgentInstance,
-    Checkpoint,
-    Objective,
-    ExecutionLoop,
-    SafePoint,
-    IterationRecord,
-    # Core classes
-    OrchestrationStorage,
-    TaskRouter,
-    AgentExecutor,
-    ObjectiveManager,
-    LoopManager,
-    SafePointManager,
-)
+from .core import SafePoint, OrchestrationStorage, SafePointManager
 
 __all__ = [
-    # Enums
-    "ModelType",
-    "TaskComplexity",
-    "InstanceStatus",
-    "ObjectiveStatus",
-    "LoopStatus",
-    # Dataclasses
-    "TaskAnalysis",
-    "RoutingDecision",
-    "AgentInstance",
-    "Checkpoint",
-    "Objective",
-    "ExecutionLoop",
     "SafePoint",
-    "IterationRecord",
-    # Core classes
     "OrchestrationStorage",
-    "TaskRouter",
-    "AgentExecutor",
-    "ObjectiveManager",
-    "LoopManager",
     "SafePointManager",
 ]

@@ -1,23 +1,15 @@
 """
-Workflow Feature - Meta-cognition and Reflection
+Workflow Feature - Session Onboarding
 
-Structured thinking and workflow management for AI agents.
+Load project context at the start of each session.
+
+Note: Reflection and summarization tools removed.
+Claude handles meta-cognition natively.
 """
 
-from .core import (
-    generate_onboarding,
-    check_onboarding_status,
-    think_about_information,
-    think_about_task,
-    think_about_completion,
-    summarize_changes,
-)
+from .core import generate_onboarding, check_onboarding_status
 
 __all__ = [
     "generate_onboarding",
     "check_onboarding_status",
-    "think_about_information",
-    "think_about_task",
-    "think_about_completion",
-    "summarize_changes",
 ]
