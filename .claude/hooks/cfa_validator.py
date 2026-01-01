@@ -147,27 +147,29 @@ def handle_pre_edit(data: Dict[str, Any]) -> int:
 
     # Check if context was loaded
     if not state.get("kg_retrieve_done", False):
-        # First time - warn but allow (medium enforcement)
-        if not state.get("edit_warning_shown", False):
-            state["edit_warning_shown"] = True
-            save_state(state)
-            output_decision(
-                "approve",
-                "First edit without context - warning",
-                """
-## Warning: Editing Without Context
+        # STRICT ENFORCEMENT: Block edits until context is loaded
+        output_decision(
+            "block",
+            "Cannot edit without loading context first",
+            """
+## ⛔ Cannot Proceed: Context Not Loaded
 
-You're editing without calling `kg.retrieve` first.
+CFA enforces that context must be retrieved BEFORE editing code.
 
-**Recommended before continuing:**
+**Required first step:**
 ```
 kg.retrieve(project_path=".", task="describe your current task")
 ```
 
-This ensures you understand existing patterns before making changes.
+This ensures you understand:
+- Existing code patterns
+- Function dependencies
+- Potential impacts of your changes
+
+**After context is loaded**, you'll be able to edit.
 """
-            )
-            return 0
+        )
+        return 2  # Block the action
 
     # Track modified file
     if file_path and file_path not in state.get("files_modified", []):
