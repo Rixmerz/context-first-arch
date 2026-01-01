@@ -244,42 +244,6 @@ This ensures no callers are broken by your changes.
 
 
 # ============================================================================
-# HOOK: Stop (Session End Check)
-# ============================================================================
-
-def handle_stop(data: Dict[str, Any]) -> int:
-    """
-    Handle session stop event.
-
-    Informational only - actual enforcement happens in pre-commit hook.
-    """
-    state = load_state()
-    cwd = data.get("cwd", os.getcwd())
-
-    # Only on CFA projects
-    if not is_cfa_project(cwd):
-        return 0
-
-    # Just a reminder - enforcement is in .git/hooks/pre-commit
-    output_decision(
-        "approve",
-        "CFA session info",
-        """
-## ℹ️ CFA Enforcement via Pre-commit Hook
-
-Mandatory documentation is enforced when you commit:
-- Code changes → kg.build required
-- Function changes → contract.check_breaking required
-- Significant changes → memory.set recommended
-
-This ensures all changes are properly documented before being saved.
-"""
-    )
-
-    return 0
-
-
-# ============================================================================
 # HOOK: Track kg.retrieve calls
 # ============================================================================
 
@@ -338,9 +302,6 @@ def main():
         elif event == "PostToolUse":
             if tool_name == "Edit":
                 return handle_post_edit(data)
-
-        elif event == "Stop":
-            return handle_stop(data)
 
         return 0
 
