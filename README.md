@@ -68,6 +68,55 @@ expanded = kg.context(
 
 ---
 
+## Advanced Features (NEW)
+
+### 1. **Automatic Protocol Enforcement**
+CFA now enforces best practices automatically:
+
+```
+SessionStart → Remind onboarding protocol
+PreToolUse  → Warn if editing without context
+PostToolUse → Remind about breaking changes
+Stop        → Check pending documentation
+```
+
+**Files:** `.claude/hooks/cfa_validator.py` + Global hooks in `~/.claude/hooks/`
+
+### 2. **Git Pre-commit Hook**
+Automatic checks before every commit:
+- ✅ Knowledge Graph exists and is fresh
+- ✅ New feature files have contracts
+- ✅ Code changes tracked
+
+**File:** `.git/hooks/pre-commit`
+
+### 3. **Project Status Dashboard** (`/cfa-status`)
+Quick overview of CFA health:
+```
+Knowledge Graph: Status, chunks, age, coverage
+Contracts: Total, valid, outdated
+Memory: Learnings, tags, last update
+Safe Points: Available checkpoints
+Issues: Missing contracts, stale KG, breaking changes
+```
+
+**File:** `.claude/skills/cfa-status.md`
+
+### 4. **Auto-audit Hook**
+Detect architectural violations:
+```
+python3 .claude/hooks/cfa_audit.py .
+```
+
+Finds:
+- Functions without contracts
+- Undocumented changes
+- Potential breaking changes
+- Missing learnings in memory
+- Stale Knowledge Graph
+
+---
+
 ## Tools Overview (27 Total)
 
 ### Workflow (1 tool)
