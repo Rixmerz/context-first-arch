@@ -249,7 +249,8 @@ def handle_stop(data: Dict[str, Any]) -> int:
     """
     Handle session stop event.
 
-    Reminds about pending actions before ending.
+    BLOCKS session if pending CFA actions exist.
+    Exit code 2 = BLOCKED, user must complete actions first.
     """
     state = load_state()
     cwd = data.get("cwd", os.getcwd())
@@ -259,34 +260,48 @@ def handle_stop(data: Dict[str, Any]) -> int:
         return 0
 
     reminders = []
+    blocking_issues = []
 
     # Check if files were modified but kg.build not run
     if state.get("kg_build_pending", False):
         files = state.get("files_modified", [])
         reminders.append(f"- `kg.build(incremental=true)` - {len(files)} file(s) modified")
+        blocking_issues.append("kg_build_pending")
 
     # Check if functions were modified but not checked
     funcs = state.get("functions_modified", [])
     if funcs:
         reminders.append(f"- `contract.check_breaking` for: {', '.join(funcs[:3])}")
+        blocking_issues.append("breaking_changes_unchecked")
 
     if reminders:
+        # BLOCKING: Session cannot end until these are resolved
         output_decision(
-            "approve",
-            "Pending CFA actions",
+            "block",  # 'block' decision
+            "BLOCKED: Pending CFA actions must be completed",
             f"""
-## CFA Session Checklist
+## ⛔ CFA SESSION BLOCKED - Pending Actions Required
 
-Before ending, consider:
+You cannot end this session until you complete:
 
 {chr(10).join(reminders)}
 
-Also remember:
+Also recommended:
 - `memory.set(key="...", value="...", tags=["..."])` for any learnings
 - `safe_point.create(task_summary="...")` if significant changes were made
+
+**Resume the session and run these commands to unblock.**
 """
         )
+        # Exit code 2 = BLOCK this action
+        return 2
 
+    # All checks passed - session can end
+    output_decision(
+        "approve",
+        "CFA session checklist complete",
+        "✅ Session closed cleanly - all CFA actions completed."
+    )
     return 0
 
 
