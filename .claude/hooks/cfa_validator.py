@@ -40,6 +40,13 @@ def load_state() -> Dict[str, Any]:
         "files_modified": [],
         "functions_modified": [],
         "kg_build_pending": False,
+        # Smart suggestions metrics
+        "kg_builds_this_session": 0,
+        "contract_checks_this_session": 0,
+        "edits_since_last_kg_build": 0,
+        "breaking_changes_checked": False,
+        "last_kg_build_time": None,
+        "suggestions_pending": [],
         "last_activity": None
     }
 
@@ -175,6 +182,8 @@ This ensures you understand:
     if file_path and file_path not in state.get("files_modified", []):
         state.setdefault("files_modified", []).append(file_path)
         state["kg_build_pending"] = True
+        # Increment counter for smart suggestions
+        state["edits_since_last_kg_build"] = state.get("edits_since_last_kg_build", 0) + 1
         save_state(state)
 
     return 0
@@ -220,7 +229,11 @@ def handle_post_edit(data: Dict[str, Any]) -> int:
         modified_funcs = old_funcs | new_funcs
 
         if modified_funcs:
-            state.setdefault("functions_modified", []).extend(modified_funcs)
+            # Add to tracking (avoid duplicates)
+            existing = set(state.get("functions_modified", []))
+            new_modified = existing | modified_funcs
+            state["functions_modified"] = list(new_modified)
+            state["breaking_changes_checked"] = False  # Reset check flag
             save_state(state)
 
             output_decision(
@@ -259,6 +272,18 @@ def handle_kg_build(data: Dict[str, Any]) -> int:
     """Track when kg.build is called."""
     state = load_state()
     state["kg_build_pending"] = False
+    state["edits_since_last_kg_build"] = 0  # Reset counter
+    state["last_kg_build_time"] = datetime.now().isoformat()
+    state["kg_builds_this_session"] = state.get("kg_builds_this_session", 0) + 1
+    save_state(state)
+    return 0
+
+
+def handle_contract_check_breaking(data: Dict[str, Any]) -> int:
+    """Track when contract.check_breaking is called."""
+    state = load_state()
+    state["breaking_changes_checked"] = True
+    state["contract_checks_this_session"] = state.get("contract_checks_this_session", 0) + 1
     save_state(state)
     return 0
 
@@ -296,6 +321,8 @@ def main():
                 return handle_kg_retrieve(data)
             elif tool_name == "mcp__cfa__kg_build":
                 return handle_kg_build(data)
+            elif tool_name == "mcp__cfa__contract_check_breaking":
+                return handle_contract_check_breaking(data)
             elif tool_name == "mcp__cfa__workflow_onboard":
                 return handle_workflow_onboard(data)
 

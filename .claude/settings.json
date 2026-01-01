@@ -48,6 +48,16 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/cfa_smart_suggestions.py\"",
+            "timeout": 5
+          }
+        ]
       }
     ]
   }
