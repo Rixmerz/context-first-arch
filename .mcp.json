@@ -1,9 +1,8 @@
 {
   "mcpServers": {
     "cfa4": {
-      "command": "uv",
-      "args": ["run", "python", "-m", "src.cfa_v4.server"],
-      "cwd": "/Users/juanpablodiaz/my_projects/ASOA/context-first-arch"
+      "command": "/Users/juanpablodiaz/.local/bin/uv",
+      "args": ["--directory", "/Users/juanpablodiaz/my_projects/ASOA/context-first-arch", "run", "python", "-m", "src.cfa_v4.server"]
     }
   }
 }
