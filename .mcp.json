@@ -1,9 +1,3 @@
 {
-  "mcpServers": {
-    "cfa": {
-      "command": "/Users/juanpablodiaz/my_projects/ASOA/context-first-arch/.venv/bin/python",
-      "args": ["-m", "src.mcp_server.server"],
-      "cwd": "/Users/juanpablodiaz/my_projects/ASOA/context-first-arch"
-    }
-  }
+  "mcpServers": {}
 }
