@@ -1,0 +1,39 @@
+# Project Map
+
+## What This Project Does
+<!-- Describe the project purpose in 1-2 sentences -->
+
+## Entry Points
+<!-- List main entry points -->
+- `src/main.py` - Main application entry
+- `npm start` / `python main.py` - How to run
+
+## Directory Structure
+```
+src/
+  features/     # Feature modules (auth, payments, etc.)
+  shared/       # Shared utilities and types
+  core/         # Core business logic
+```
+
+## Key Concepts
+<!-- List 3-5 key concepts a new developer needs to understand -->
+1. **Concept 1**: Brief explanation
+2. **Concept 2**: Brief explanation
+
+## Data Flow
+```
+[User Input] -> [API Handler] -> [Service] -> [Database]
+                     |
+                     v
+              [Response/Error]
+```
+
+## Non-Obvious Things
+<!-- Document gotchas, quirks, or things that aren't obvious -->
+- None documented yet
+
+## External Dependencies
+<!-- Key external services or APIs this project uses -->
+- Database: PostgreSQL / SQLite
+- Auth: JWT / OAuth

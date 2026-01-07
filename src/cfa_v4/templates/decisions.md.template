@@ -1,0 +1,21 @@
+# Architecture Decisions
+
+Record important architectural decisions here.
+
+## Template
+
+```markdown
+## YYYY-MM-DD: Decision Title
+
+**Context**: What situation led to this decision?
+**Decision**: What was decided?
+**Reason**: Why this choice over alternatives?
+**Alternatives Considered**: What else was evaluated?
+**Consequences**: What are the trade-offs?
+```
+
+---
+
+## Decisions
+
+<!-- Add your decisions below -->

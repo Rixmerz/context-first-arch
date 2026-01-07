@@ -60,6 +60,8 @@ all = [
 [project.scripts]
 cfa = "src.mcp_server.server:main"
 cfa-server = "src.mcp_server.server:main"
+cfa4 = "src.cfa_v4.server:run"
+cfa4-server = "src.cfa_v4.server:run"
 
 [project.urls]
 Documentation = "https://github.com/context-first/context-first-architecture#readme"
