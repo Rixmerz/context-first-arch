@@ -1,9 +1,10 @@
 {
-  "timestamp": "2026-01-01T13:12:12.533337",
+  "timestamp": "2026-01-07T09:10:46.631659",
   "files_read": [
     ".claude/map.md",
     ".claude/settings.json",
     ".claude/current-task.md",
-    ".claude/decisions.md"
+    ".claude/decisions.md",
+    "contracts/safe_points.contract.md"
   ]
 }
