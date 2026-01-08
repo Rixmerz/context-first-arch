@@ -1,78 +1,79 @@
-# CLAUDE.md - CFA Project Instructions
+# CLAUDE.md - CFA v4 Project Instructions
 
-This project uses **Context-First Architecture (CFA) v3** with 27 optimized MCP tools.
+This project uses **Context-First Architecture (CFA) v4** - a minimalist 4-tool framework.
+
+## Philosophy
+
+> "Architecture over indexing."
+
+Good project structure makes complex indexing unnecessary. CFA v4 provides:
+- 4 simple tools (not 27+)
+- JSON/Markdown storage (no databases)
+- Git-based checkpoints (no complex orchestration)
 
 ## Session Start Protocol
 
-At the START of every session, you MUST:
-1. Call `workflow.onboard(project_path=".")` to load project context
-2. Call `kg.retrieve(task="<your task>")` to get task-relevant code
-3. Call `memory.search(query="<task keywords>")` to check past learnings
-
-**DO NOT start coding without context.** CFA provides intelligent retrieval.
-
-## During Development
-
-### Before Writing Code
-- `kg.retrieve(task="...")` - Get relevant code context for your task
-- `analyze.change(project_path=".")` - Check project patterns (without file_path)
-- `rule.list(project_path=".")` - Check business rules that must be preserved
-
-### After Modifying Functions
-**CRITICAL:** After changing ANY function signature (parameters added/removed/reordered):
+At the START of every session:
 ```
-contract.check_breaking(project_path=".", symbol="function_name")
+cfa.onboard(project_path=".")
 ```
-DO NOT mark task complete until `breaking_changes=[]`. Skipping causes runtime errors.
 
-### Before Risky Changes
-Before deleting files, major refactoring, or modifying core logic:
-1. `analyze.change(project_path=".", file_path="...")` - Check impact/blast radius
-2. If risk is high/critical: `safe_point.create(task_summary="...")` - Create checkpoint
+This loads:
+- `.claude/map.md` - Project structure
+- `.claude/decisions.md` - Architecture decisions
+- `.claude/current-task.md` - Current task state
+- `.claude/memories.json` - Persistent knowledge
 
-### When Learning Something Important
-When discovering project patterns, gotchas, or decisions:
+## The 4 Tools
+
+### 1. cfa.onboard
+Load project context in one call. Use `init_if_missing=true` to bootstrap new projects.
+
+### 2. cfa.remember
+Store knowledge persistently:
 ```
-memory.set(key="descriptive-key", value="what you learned", tags=["pattern", "gotcha"])
+cfa.remember(key="auth-pattern", value="Uses JWT with refresh tokens", tags=["pattern"])
 ```
-Future sessions will retrieve this knowledge.
 
-## Recovery
+### 3. cfa.recall
+Retrieve stored knowledge:
+```
+cfa.recall(query="authentication")  # Search by text
+cfa.recall(tags=["gotcha"])         # Search by tags
+cfa.recall(key="auth-pattern")      # Exact key lookup
+```
 
-### If Something Breaks
-1. `safe_point.list(project_path=".")` - See available restore points
-2. `safe_point.rollback(project_path=".", mode="preview")` - Preview what would be reverted
-3. `safe_point.rollback(project_path=".", mode="execute")` - Actually rollback
+### 4. cfa.checkpoint
+Git-based safe points:
+```
+cfa.checkpoint(action="create", message="Before refactoring auth")
+cfa.checkpoint(action="list")
+cfa.checkpoint(action="rollback", checkpoint_id="abc123", dry_run=true)
+```
 
-### If Context Feels Incomplete
-The `kg.retrieve` response includes omission info. To expand:
-1. Review `omission_summary` in kg.retrieve response
-2. `kg.context(project_path=".", mode="expand", chunk_id="...")` - Get more context
+## Project Structure
 
-## Consolidated Tools Reference
+```
+context-first-arch/
+├── src/cfa_v4/           # The CFA v4 server
+│   ├── server.py         # MCP server entry point
+│   ├── tools/            # The 4 tools
+│   └── templates/        # Init templates
+├── .claude/              # Project metadata
+│   ├── map.md
+│   ├── decisions.md
+│   ├── current-task.md
+│   ├── settings.json
+│   └── memories.json
+└── pyproject.toml
+```
 
-CFA v3 uses mode/operation parameters for related functionality:
+## When to Use Each Tool
 
-| Old Tools | New Unified Tool |
-|-----------|------------------|
-| `kg.expand`, `kg.get`, `kg.related` | `kg.context(mode="expand\|get\|related")` |
-| `kg.history`, `kg.blame`, `kg.diff` | `kg.git(operation="history\|blame\|diff")` |
-| `dependency.analyze`, `coupling.analyze` | `analyze.structure(target=...or None)` |
-| `pattern.detect`, `impact.analyze` | `analyze.change(file_path=...or None)` |
-| `contract.diff` | `contract.sync(preview=true)` |
-| `rule.batch` | `rule.confirm(rule_ids=[...])` |
-| `workflow.instructions` | `workflow.onboard(show_instructions=true)` |
-| `project.scan` | `kg.build(update_map=true)` |
-
-## Project: context-first-arch
-
-This is the CFA framework itself. Key directories:
-- `src/mcp_server/` - MCP server with 27 tools
-- `src/features/` - Feature implementations (knowledge_graph, memory, rules, etc.)
-- `src/core/` - Core utilities and analyzers
-
----
-
-## Project-Specific Notes
-
-<!-- Add project-specific conventions, gotchas, or instructions here -->
+| Situation | Tool |
+|-----------|------|
+| Starting a session | `cfa.onboard` |
+| Learned something important | `cfa.remember` |
+| Need past knowledge | `cfa.recall` |
+| Before risky changes | `cfa.checkpoint(action="create")` |
+| Something broke | `cfa.checkpoint(action="rollback")` |
