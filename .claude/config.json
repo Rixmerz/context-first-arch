@@ -1,7 +1,0 @@
-{
-  "name": "Context-First Architecture",
-  "description": "MCP server for Context-First Architecture - a development methodology optimized for LLM collaboration",
-  "languages": ["python"],
-  "created_at": "2024-12-10T00:00:00",
-  "cfa_version": "2.0"
-}
