@@ -2,5 +2,29 @@
   "cfa_version": "4.0",
   "source_root": "src",
   "framework": "python-mcp",
-  "project_type": "mcp-server"
+  "project_type": "mcp-server",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/cfa_enforce.py\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__cfa4__cfa_onboard",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/cfa_enforce.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
 }
