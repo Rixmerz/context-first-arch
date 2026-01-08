@@ -31,7 +31,25 @@ uv pip install context-first-architecture
 
 # Or with pip
 pip install context-first-architecture
+
+# Install enforcement hooks (recommended)
+cfa4-install
 ```
+
+### Enforcement Hooks
+
+The `cfa4-install` command sets up hooks that **enforce** the CFA protocol:
+
+- **Blocks** `Edit`/`Write` operations until `cfa.onboard()` is called
+- Only applies to projects with a `.claude/` directory
+- Hooks are installed globally in `~/.claude/hooks/`
+
+```bash
+cfa4-install          # Install hooks
+cfa4-install --remove # Uninstall hooks
+```
+
+**Note:** Restart Claude Code after installing hooks.
 
 ## Usage with Claude Code
 

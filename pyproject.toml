@@ -36,6 +36,7 @@ dev = [
 [project.scripts]
 cfa4 = "src.cfa_v4.server:run"
 cfa4-server = "src.cfa_v4.server:run"
+cfa4-install = "src.cfa_v4.install:main"
 
 [project.urls]
 Documentation = "https://github.com/context-first/context-first-architecture#readme"
