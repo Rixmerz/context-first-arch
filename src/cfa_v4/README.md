@@ -135,15 +135,33 @@ Those tools index your codebase with embeddings and vector DBs. CFA v4 argues:
 
 ## Installation
 
-```bash
-# CFA v4 is included in context-first-architecture
-pip install context-first-architecture
+### Direct from GitHub with uvx (Recommended)
 
-# Run the server
-cfa4-server
+Add to your Claude Code MCP configuration:
+
+```json
+{
+  "mcpServers": {
+    "cfa4": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/Rixmerz/context-first-arch",
+        "cfa4-server"
+      ]
+    }
+  }
+}
 ```
 
-Or configure in Claude Code:
+### Or install with pip
+
+```bash
+pip install context-first-architecture
+```
+
+Then configure:
+
 ```json
 {
   "mcpServers": {

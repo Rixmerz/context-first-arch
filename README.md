@@ -25,35 +25,41 @@ Instead, it provides **4 tools** that do one thing well.
 
 ## Installation
 
+### Option 1: Direct from GitHub with uvx (Recommended)
+
+Add to your Claude Code MCP configuration (`~/.config/claude/mcp_settings.json` or `.mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "cfa4": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/Rixmerz/context-first-arch",
+        "cfa4-server"
+      ]
+    }
+  }
+}
+```
+
+**Advantages:**
+- No global installation needed
+- Always uses latest version from repository
+- Isolated environment per execution
+
+### Option 2: Install with pip/uv
+
 ```bash
-# With uv (recommended)
+# With uv
 uv pip install context-first-architecture
 
 # Or with pip
 pip install context-first-architecture
-
-# Install enforcement hooks (recommended)
-cfa4-install
 ```
 
-### Enforcement Hooks
-
-The `cfa4-install` command sets up hooks that **enforce** the CFA protocol:
-
-- **Blocks** `Edit`/`Write` operations until `cfa.onboard()` is called
-- Only applies to projects with a `.claude/` directory
-- Hooks are installed globally in `~/.claude/hooks/`
-
-```bash
-cfa4-install          # Install hooks
-cfa4-install --remove # Uninstall hooks
-```
-
-**Note:** Restart Claude Code after installing hooks.
-
-## Usage with Claude Code
-
-Add to your `.mcp.json`:
+Then configure MCP:
 
 ```json
 {
@@ -64,6 +70,22 @@ Add to your `.mcp.json`:
   }
 }
 ```
+
+### Enforcement Hooks (Optional)
+
+Install hooks that **enforce** the CFA protocol:
+
+```bash
+cfa4-install          # Install hooks
+cfa4-install --remove # Uninstall hooks
+```
+
+**What hooks do:**
+- Block `Edit`/`Write` until `cfa.onboard()` is called
+- Only apply to projects with `.claude/` directory
+- Install globally in `~/.claude/hooks/`
+
+**Note:** Restart Claude Code after installing hooks.
 
 ## Project Setup
 
