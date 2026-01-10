@@ -39,9 +39,9 @@ cfa4-server = "src.cfa_v4.server:run"
 cfa4-install = "src.cfa_v4.install:main"
 
 [project.urls]
-Documentation = "https://github.com/context-first/context-first-architecture#readme"
-Issues = "https://github.com/context-first/context-first-architecture/issues"
-Source = "https://github.com/context-first/context-first-architecture"
+Documentation = "https://github.com/Rixmerz/context-first-arch#readme"
+Issues = "https://github.com/Rixmerz/context-first-arch/issues"
+Source = "https://github.com/Rixmerz/context-first-arch"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
