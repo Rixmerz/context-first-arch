@@ -8,5 +8,16 @@
     ],
     "created_at": "2026-01-08T00:03:13.769518",
     "updated_at": "2026-01-08T00:03:38.368064"
+  },
+  {
+    "key": "pre-publish-cleanup-2026-01-10",
+    "value": "Preparaci\u00f3n completa para publicaci\u00f3n en GitHub (https://github.com/Rixmerz/context-first-arch):\n\n\u2705 COMPLETADO:\n- Agregado LICENSE (MIT)\n- Limpiado .gitignore (removidas l\u00edneas temporales de dev tools)\n- Archivos de desarrollo eliminados (.agentcockpit/, one-term-project.json)\n- URLs actualizadas en pyproject.toml\n- Verificado que funcione con uvx \u2705\n- Agregados 19 tests (100% passing):\n  * 5 tests para onboard (init, load, memories, truncate)\n  * 9 tests para memory (remember, recall, forget)\n  * 5 tests para checkpoint (create, list, rollback, dry-run)\n- Build exitoso con uv\n\nPR\u00d3XIMOS PASOS:\n1. git add LICENSE .gitignore tests/\n2. git commit -m \"Prepare for public release\"\n3. git push origin master\n4. Crear repositorio en GitHub: Rixmerz/context-first-arch\n5. Opcionalmente publicar a PyPI con: uv publish",
+    "tags": [
+      "testing",
+      "release",
+      "cleanup"
+    ],
+    "created_at": "2026-01-10T05:01:12.438010",
+    "updated_at": "2026-01-10T05:05:48.794720"
   }
 ]
