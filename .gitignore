@@ -156,10 +156,6 @@ temp/
 *.tmp
 *.temp
 
-# Development tools
-.agentcockpit/
-one-term-project.json
-
 # =============================================================================
 # IMPORTANT: Do NOT ignore these (source code)
 # =============================================================================
