@@ -109,116 +109,132 @@ This creates:
 
 ### The Problem CFA Solves
 
-LLMs process text sequentially with limited context windows. Each file read consumes tokens. Each search is a round-trip. Fragmentation and ambiguity are the enemy.
+LLMs process text sequentially with limited context windows. Each file read consumes tokens. Each search is a round-trip. **Fragmentation and dependency hunting are the enemy.**
 
-**The solution:** Structure projects so an LLM can understand them in 2-3 reads, not 20 searches and 15 fragmented files.
+**The solution:** Structure projects so an LLM can understand them in 2-3 reads, not 20 searches across 15 fragmented files.
 
-### Structure by Complexity
+### The Golden Rules
 
-**Simple Features (< 100 lines)**
 ```
-src/features/theme-toggle/
-├── theme-toggle.ts
-└── theme-toggle.test.ts
-```
-
-**Medium Features (100-300 lines)**
-```
-src/features/notifications/
-├── notifications.ts
-├── notifications-utils.ts
-├── notifications.test.ts
-└── index.ts
+1. Each feature = self-contained directory
+2. Shared code = ONE place only (utils/)
+3. Features NEVER import from other features
+4. Each feature imports from utils/ at most
 ```
 
-**Complex Features (> 300 lines, multiple layers)**
+### Architecture
+
 ```
-src/features/authentication/
-├── core/
-│   ├── auth-service.ts
-│   ├── token-manager.ts
-│   └── session-store.ts
-├── api/
-│   ├── auth-routes.ts
-│   └── auth-middleware.ts
-├── models/
-│   └── user-session.ts
-├── tests/
-│   ├── unit/
-│   └── integration/
-└── index.ts
+src/
+├── features/
+│   ├── auth/
+│   │   ├── auth.ts
+│   │   └── auth.test.ts
+│   ├── notifications/
+│   │   ├── notifications.ts
+│   │   └── notifications.test.ts
+│   └── payments/
+│       ├── payments.ts
+│       └── payments.test.ts
+│
+└── utils/
+    └── index.ts    # ONE entry point for all shared code
 ```
+
+**Why this works for LLMs:**
+- **Predictable:** "Where is auth?" → `features/auth/`
+- **One import path:** All shared code via `from '../utils'`
+- **No hunting:** Dependencies are obvious at a glance
+- **Fewer tokens:** Less files to read = less context consumed
+
+### When Features Grow (> 300 lines)
+
+Split into flat files within the feature directory. **NO subdirectories.**
+
+```
+src/features/auth/
+├── auth.ts           # Main orchestrator (entry point)
+├── auth-tokens.ts    # Token-specific logic
+├── auth-session.ts   # Session-specific logic
+├── auth.test.ts
+└── index.ts          # Public API (only thing imported from outside)
+```
+
+**From outside, auth is still a black box.** You only import from `auth/` via index.ts.
 
 ### Decision Tree
 
 ```
-1. Is the feature < 100 total lines?
-   → YES: Single file + test file
-   → NO: Continue to 2
-
-2. Does the feature have multiple layers? (API + Business + Data)
-   → YES: Use subdirectories (core/, api/, models/)
-   → NO: Continue to 3
-
-3. Is the feature 100-300 lines?
-   → YES: Split into main file + utilities
-   → NO: Use complex feature structure with subdirectories
-
-4. Is the code used by multiple features?
-   → YES: Move to src/shared/
+1. Does multiple features need this code?
+   → YES: Move to utils/
    → NO: Keep in feature directory
+
+2. Is the feature > 300 lines?
+   → YES: Split into flat files, expose via index.ts
+   → NO: Single file + test file
+
+3. Am I importing from another feature?
+   → STOP. Extract shared logic to utils/ instead.
 ```
 
-### Naming Conventions
+### utils/ is NOT a Junk Drawer
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Features | Noun-based | `notifications.ts`, `auth-service.ts` |
-| Utilities | Descriptive | `date-utils.ts`, `validators.ts` |
-| Tests | Match source | `auth-service.test.ts` |
-| Index files | Always `index.ts` | Public API of the module |
+The anti-pattern is `utils/` without criteria. The pattern is `utils/` with clear purpose:
+
+| Goes to utils/ | Stays in feature/ |
+|----------------|-------------------|
+| Used by 2+ features | Used by one feature only |
+| Generic (dates, validation, formatting) | Domain-specific logic |
+| Stable, rarely changes | Evolves with feature |
+
+**utils/ has ONE index.ts** that exports everything. No subdirectories.
 
 ### Anti-patterns to Avoid
 
-- **`index.ts` that only re-exports** — useless indirection
-- **50-line files** — extreme fragmentation
-- **Generic folders** (`utils/`, `helpers/`, `common/`) — junk drawers
-- **Generic names** (`handler.ts`, `service.ts`) — meaningless
-- **Deep nesting** (`src/domain/entities/user/User.ts`) — hard to navigate
-- **Barrel exports** — hide real structure
-- **Separate `.d.ts` files** — types far from implementation
+- **Importing feature → feature** — Extract to utils/ instead
+- **Subdirectories in utils/** (`utils/types/`, `utils/helpers/`) — Keep it flat
+- **Subdirectories in features** (`feature/core/`, `feature/api/`) — Over-engineering
+- **50-line files** — Extreme fragmentation
+- **Deep nesting** (`src/domain/entities/user/User.ts`) — Hard to navigate
+- **Barrel exports hiding structure** — Dependencies should be obvious
 
 ### Real-World Example: This Project
-
-CFA v4 uses a 3-layer architecture:
 
 ```
 src/cfa_v4/
 ├── server.py              # Entry point
-├── tools/                 # MCP tool layer (public API)
+├── tools/                 # Features (each tool = one feature)
 │   ├── onboard.py
 │   ├── remember.py
 │   ├── recall.py
 │   └── checkpoint.py
-├── core/                  # Business logic (internal)
-│   └── (future extraction)
-└── templates/             # Init templates
+└── templates/             # Shared resources
     └── *.md
 ```
 
 **Why this structure:**
-- **1 file = 1 tool** — easy to find and modify
-- **Tools layer is public** — what users interact with
-- **Core layer is internal** — business logic extracted from tools
-- **Clear boundaries** — public vs internal
+- **1 file = 1 tool** — Easy to find, easy to modify
+- **No cross-imports between tools** — Each tool is self-contained
+- **Templates are shared** — Used by multiple tools, lives outside
 
-### Testing Location Strategy
+### Testing Strategy
 
-| Feature Type | Test Location |
-|--------------|---------------|
-| Simple | Co-located: `feature.test.ts` next to `feature.ts` |
-| Medium | Single test file in feature directory |
-| Complex | Dedicated `tests/` subdirectory with `unit/` and `integration/` |
+Tests live next to implementation. Always.
+
+```
+feature/
+├── feature.ts
+└── feature.test.ts
+```
+
+For complex features with multiple files:
+```
+feature/
+├── feature.ts
+├── feature-helper.ts
+├── feature.test.ts        # Tests the public API (index.ts)
+└── index.ts
+```
 
 ## Example Workflow
 
