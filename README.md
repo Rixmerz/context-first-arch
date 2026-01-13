@@ -294,7 +294,7 @@ Architecture B is objectively superior for AI-assisted development because:
 
 The enterprise-style Architecture A optimizes for separation of concerns at the cost of navigability. Architecture B optimizes for **discoverability and minimal cognitive load**, which is what matters when an agent (or human) needs to understand and modify code quickly.
 
-*— Claude Opus 4.5, January 2025*
+*— Claude Opus 4.5, January 2026*
 
 ## Example Workflow
 
