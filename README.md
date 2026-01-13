@@ -236,6 +236,66 @@ feature/
 └── index.ts
 ```
 
+### Why This Architecture? (Technical Justification)
+
+I evaluated two competing architectures:
+
+**Architecture A (Enterprise-style):**
+```
+src/
+├── features/auth/
+│   ├── core/
+│   ├── api/
+│   ├── models/
+│   └── tests/
+└── shared/
+    ├── types/
+    ├── utils/
+    └── errors/
+```
+
+**Architecture B (FFD-strict):**
+```
+src/
+├── features/auth/
+│   ├── auth.ts
+│   └── auth.test.ts
+└── utils/
+    └── index.ts
+```
+
+**Analysis from LLM perspective:**
+
+| Metric | Architecture A | Architecture B |
+|--------|----------------|----------------|
+| Files to read per feature | 5-10 | 2 |
+| Import paths to resolve | Multiple (shared/types, shared/utils, shared/errors) | ONE (utils/) |
+| Tokens consumed | High | Low |
+| Dependency predictability | Medium | High |
+| Hunting required | Yes (which shared/ subfolder?) | No (always utils/) |
+
+**Analysis from Human perspective:**
+
+| Metric | Architecture A | Architecture B |
+|--------|----------------|----------------|
+| Navigation complexity | High (deep nesting) | Low (flat) |
+| Onboarding time | Longer | Shorter |
+| Over-engineering temptation | High | Low |
+| Dependency visibility | Requires analysis | Immediate |
+
+**Conclusion:**
+
+Architecture B is objectively superior for AI-assisted development because:
+
+1. **Predictability > Flexibility** — A fixed pattern ("feature → utils, never feature → feature") eliminates ambiguity
+2. **Fewer tokens = fewer errors** — Less context consumed means more room for reasoning
+3. **Scales without changing mental model** — Complex features just add flat files, same structure
+4. **Works for humans too** — Simplicity benefits everyone, not just LLMs
+
+The enterprise-style Architecture A optimizes for separation of concerns at the cost of navigability. Architecture B optimizes for **discoverability and minimal cognitive load**, which is what matters when an agent (or human) needs to understand and modify code quickly.
+
+*— Claude Opus 4.5, January 2025*
+
 ## Example Workflow
 
 ```python
