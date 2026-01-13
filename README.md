@@ -105,6 +105,121 @@ This creates:
 └── memories.json    # Persistent knowledge store
 ```
 
+## Project Structure Guidelines
+
+### The Problem CFA Solves
+
+LLMs process text sequentially with limited context windows. Each file read consumes tokens. Each search is a round-trip. Fragmentation and ambiguity are the enemy.
+
+**The solution:** Structure projects so an LLM can understand them in 2-3 reads, not 20 searches and 15 fragmented files.
+
+### Structure by Complexity
+
+**Simple Features (< 100 lines)**
+```
+src/features/theme-toggle/
+├── theme-toggle.ts
+└── theme-toggle.test.ts
+```
+
+**Medium Features (100-300 lines)**
+```
+src/features/notifications/
+├── notifications.ts
+├── notifications-utils.ts
+├── notifications.test.ts
+└── index.ts
+```
+
+**Complex Features (> 300 lines, multiple layers)**
+```
+src/features/authentication/
+├── core/
+│   ├── auth-service.ts
+│   ├── token-manager.ts
+│   └── session-store.ts
+├── api/
+│   ├── auth-routes.ts
+│   └── auth-middleware.ts
+├── models/
+│   └── user-session.ts
+├── tests/
+│   ├── unit/
+│   └── integration/
+└── index.ts
+```
+
+### Decision Tree
+
+```
+1. Is the feature < 100 total lines?
+   → YES: Single file + test file
+   → NO: Continue to 2
+
+2. Does the feature have multiple layers? (API + Business + Data)
+   → YES: Use subdirectories (core/, api/, models/)
+   → NO: Continue to 3
+
+3. Is the feature 100-300 lines?
+   → YES: Split into main file + utilities
+   → NO: Use complex feature structure with subdirectories
+
+4. Is the code used by multiple features?
+   → YES: Move to src/shared/
+   → NO: Keep in feature directory
+```
+
+### Naming Conventions
+
+| Type | Convention | Example |
+|------|------------|---------|
+| Features | Noun-based | `notifications.ts`, `auth-service.ts` |
+| Utilities | Descriptive | `date-utils.ts`, `validators.ts` |
+| Tests | Match source | `auth-service.test.ts` |
+| Index files | Always `index.ts` | Public API of the module |
+
+### Anti-patterns to Avoid
+
+- **`index.ts` that only re-exports** — useless indirection
+- **50-line files** — extreme fragmentation
+- **Generic folders** (`utils/`, `helpers/`, `common/`) — junk drawers
+- **Generic names** (`handler.ts`, `service.ts`) — meaningless
+- **Deep nesting** (`src/domain/entities/user/User.ts`) — hard to navigate
+- **Barrel exports** — hide real structure
+- **Separate `.d.ts` files** — types far from implementation
+
+### Real-World Example: This Project
+
+CFA v4 uses a 3-layer architecture:
+
+```
+src/cfa_v4/
+├── server.py              # Entry point
+├── tools/                 # MCP tool layer (public API)
+│   ├── onboard.py
+│   ├── remember.py
+│   ├── recall.py
+│   └── checkpoint.py
+├── core/                  # Business logic (internal)
+│   └── (future extraction)
+└── templates/             # Init templates
+    └── *.md
+```
+
+**Why this structure:**
+- **1 file = 1 tool** — easy to find and modify
+- **Tools layer is public** — what users interact with
+- **Core layer is internal** — business logic extracted from tools
+- **Clear boundaries** — public vs internal
+
+### Testing Location Strategy
+
+| Feature Type | Test Location |
+|--------------|---------------|
+| Simple | Co-located: `feature.test.ts` next to `feature.ts` |
+| Medium | Single test file in feature directory |
+| Complex | Dedicated `tests/` subdirectory with `unit/` and `integration/` |
+
 ## Example Workflow
 
 ```python
