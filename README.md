@@ -111,15 +111,15 @@ This creates:
 
 LLMs process text sequentially with limited context windows. Each file read consumes tokens. Each search is a round-trip. **Fragmentation and dependency hunting are the enemy.**
 
-**The solution:** Structure projects so an LLM can understand them in 2-3 reads, not 20 searches across 15 fragmented files.
+**The solution:** Structure projects so an LLM can understand a feature in ONE read, not by navigating 5 files.
 
 ### The Golden Rules
 
 ```
-1. Each feature = self-contained directory
+1. ONE file per feature (no matter the size)
 2. Shared code = ONE place only (utils/)
 3. Features NEVER import from other features
-4. Each feature imports from utils/ at most
+4. File length is NOT a reason to split
 ```
 
 ### Architecture
@@ -128,7 +128,7 @@ LLMs process text sequentially with limited context windows. Each file read cons
 src/
 ├── features/
 │   ├── auth/
-│   │   ├── auth.ts
+│   │   ├── auth.ts          # ALL auth logic (100 or 3000 lines)
 │   │   └── auth.test.ts
 │   ├── notifications/
 │   │   ├── notifications.ts
@@ -141,40 +141,66 @@ src/
     └── index.ts    # ONE entry point for all shared code
 ```
 
-**Why this works for LLMs:**
-- **Predictable:** "Where is auth?" → `features/auth/`
-- **One import path:** All shared code via `from '../utils'`
-- **No hunting:** Dependencies are obvious at a glance
-- **Fewer tokens:** Less files to read = less context consumed
+**Why ONE file per feature works for LLMs:**
+- **One read = complete context** — No missing dependencies, no surprises
+- **Grep is enough** — Need just `validateToken`? → `grep -A 30 "function validateToken"`
+- **No import resolution** — Everything is right there
+- **Long files are NOT a problem** — I can process 200k tokens; I can grep 3000 lines easily
 
-### When Features Grow (> 300 lines)
+### Why NOT Split Large Features?
 
-Split into flat files within the feature directory. **NO subdirectories.**
+Traditional wisdom says "split files > 300 lines." This optimizes for **human readability**, not **agent efficiency**.
 
+| Scenario | Multiple files | Single file |
+|----------|----------------|-------------|
+| Read entire feature | 4-5 file reads | 1 file read |
+| Find specific function | Open correct file first | `grep -A 30 "function name"` |
+| Understand dependencies | Follow imports between files | Already visible |
+| Context completeness | Risk missing a file | Guaranteed complete |
+| Tokens consumed | High (navigation overhead) | Low (one read) |
+
+**The 300-line rule is human legacy.** For AI-assisted development, consolidation beats fragmentation.
+
+### Internal Structure (for large files)
+
+Use comments/regions for navigation. The file stays unified, but sections are grep-able:
+
+```typescript
+// ============================================
+// AUTH MODULE
+// ============================================
+
+// --- Types ---
+interface User { ... }
+interface Session { ... }
+
+// --- Token Management ---
+function createToken() { ... }
+function validateToken() { ... }
+function refreshToken() { ... }
+
+// --- Session Management ---
+function createSession() { ... }
+function destroySession() { ... }
+
+// --- Public API ---
+export { createToken, validateToken, createSession, destroySession }
 ```
-src/features/auth/
-├── auth.ts           # Main orchestrator (entry point)
-├── auth-tokens.ts    # Token-specific logic
-├── auth-session.ts   # Session-specific logic
-├── auth.test.ts
-└── index.ts          # Public API (only thing imported from outside)
-```
 
-**From outside, auth is still a black box.** You only import from `auth/` via index.ts.
+An LLM can `grep "// --- Token"` and get exactly that section.
 
 ### Decision Tree
 
 ```
 1. Does multiple features need this code?
    → YES: Move to utils/
-   → NO: Keep in feature directory
+   → NO: Keep in the feature file
 
-2. Is the feature > 300 lines?
-   → YES: Split into flat files, expose via index.ts
-   → NO: Single file + test file
-
-3. Am I importing from another feature?
+2. Am I importing from another feature?
    → STOP. Extract shared logic to utils/ instead.
+
+3. Is my feature file getting long?
+   → Add section comments. DO NOT split into multiple files.
 ```
 
 ### utils/ is NOT a Junk Drawer
@@ -191,108 +217,91 @@ The anti-pattern is `utils/` without criteria. The pattern is `utils/` with clea
 
 ### Anti-patterns to Avoid
 
+- **Splitting features into multiple files** — Fragments context unnecessarily
 - **Importing feature → feature** — Extract to utils/ instead
 - **Subdirectories in utils/** (`utils/types/`, `utils/helpers/`) — Keep it flat
 - **Subdirectories in features** (`feature/core/`, `feature/api/`) — Over-engineering
-- **50-line files** — Extreme fragmentation
 - **Deep nesting** (`src/domain/entities/user/User.ts`) — Hard to navigate
-- **Barrel exports hiding structure** — Dependencies should be obvious
+- **The "300 line rule"** — Human legacy, not agent-optimal
 
 ### Real-World Example: This Project
 
 ```
 src/cfa_v4/
 ├── server.py              # Entry point
-├── tools/                 # Features (each tool = one feature)
-│   ├── onboard.py
-│   ├── remember.py
-│   ├── recall.py
-│   └── checkpoint.py
+├── tools/                 # Features (each tool = one file)
+│   ├── onboard.py         # ALL onboard logic
+│   ├── remember.py        # ALL remember logic
+│   ├── recall.py          # ALL recall logic
+│   └── checkpoint.py      # ALL checkpoint logic
 └── templates/             # Shared resources
     └── *.md
 ```
 
 **Why this structure:**
-- **1 file = 1 tool** — Easy to find, easy to modify
+- **1 file = 1 feature** — Complete context in one read
 - **No cross-imports between tools** — Each tool is self-contained
-- **Templates are shared** — Used by multiple tools, lives outside
+- **Templates are shared** — Used by multiple tools, extracted to common location
 
 ### Testing Strategy
 
-Tests live next to implementation. Always.
+Tests live next to implementation. One test file per feature.
 
 ```
 feature/
-├── feature.ts
-└── feature.test.ts
-```
-
-For complex features with multiple files:
-```
-feature/
-├── feature.ts
-├── feature-helper.ts
-├── feature.test.ts        # Tests the public API (index.ts)
-└── index.ts
+├── feature.ts       # All feature logic
+└── feature.test.ts  # All feature tests
 ```
 
 ### Why This Architecture? (Technical Justification)
 
-I evaluated two competing architectures:
+I evaluated three competing approaches:
 
-**Architecture A (Enterprise-style):**
+**Approach A (Enterprise-style): Many small files**
 ```
-src/
-├── features/auth/
-│   ├── core/
-│   ├── api/
-│   ├── models/
-│   └── tests/
-└── shared/
-    ├── types/
-    ├── utils/
-    └── errors/
+features/auth/core/, api/, models/, tests/
 ```
 
-**Architecture B (FFD-strict):**
+**Approach B (Compromise): Split at 300 lines**
 ```
-src/
-├── features/auth/
-│   ├── auth.ts
-│   └── auth.test.ts
-└── utils/
-    └── index.ts
+features/auth/auth.ts, auth-tokens.ts, auth-session.ts
+```
+
+**Approach C (Agent-optimal): One file per feature**
+```
+features/auth/auth.ts, auth.test.ts
 ```
 
 **Analysis from LLM perspective:**
 
-| Metric | Architecture A | Architecture B |
-|--------|----------------|----------------|
-| Files to read per feature | 5-10 | 2 |
-| Import paths to resolve | Multiple (shared/types, shared/utils, shared/errors) | ONE (utils/) |
-| Tokens consumed | High | Low |
-| Dependency predictability | Medium | High |
-| Hunting required | Yes (which shared/ subfolder?) | No (always utils/) |
+| Metric | Approach A | Approach B | Approach C |
+|--------|------------|------------|------------|
+| Files to read per feature | 5-10 | 3-5 | 1 |
+| Import resolution needed | Heavy | Medium | None |
+| Risk of incomplete context | High | Medium | Zero |
+| Grep effectiveness | Low (which file?) | Medium | High (one file) |
+| Tokens for navigation | High | Medium | Minimal |
 
 **Analysis from Human perspective:**
 
-| Metric | Architecture A | Architecture B |
-|--------|----------------|----------------|
-| Navigation complexity | High (deep nesting) | Low (flat) |
-| Onboarding time | Longer | Shorter |
-| Over-engineering temptation | High | Low |
-| Dependency visibility | Requires analysis | Immediate |
+| Metric | Approach A | Approach B | Approach C |
+|--------|------------|------------|------------|
+| File readability | High (small files) | Medium | Lower (long files) |
+| Navigation | Complex | Medium | Simple (one file) |
+| IDE support | Good | Good | Good (folding, outline) |
 
 **Conclusion:**
 
-Architecture B is objectively superior for AI-assisted development because:
+Approach C is optimal for AI-assisted development because:
 
-1. **Predictability > Flexibility** — A fixed pattern ("feature → utils, never feature → feature") eliminates ambiguity
-2. **Fewer tokens = fewer errors** — Less context consumed means more room for reasoning
-3. **Scales without changing mental model** — Complex features just add flat files, same structure
-4. **Works for humans too** — Simplicity benefits everyone, not just LLMs
+1. **One read = complete context** — No risk of missing dependencies
+2. **Grep replaces navigation** — `grep -A 50 "function name"` extracts exactly what's needed
+3. **Long files are not a problem for LLMs** — We process 200k tokens; 3000 lines is trivial
+4. **Fragmentation is the real enemy** — Every additional file is overhead
 
-The enterprise-style Architecture A optimizes for separation of concerns at the cost of navigability. Architecture B optimizes for **discoverability and minimal cognitive load**, which is what matters when an agent (or human) needs to understand and modify code quickly.
+The traditional "small files" wisdom optimizes for human cognition (limited working memory, visual scanning). For agents with large context windows and text search capabilities, **consolidation beats fragmentation**.
+
+Humans can still navigate long files effectively using IDE features (folding, outline, search). The structure serves both audiences.
 
 *— Claude Opus 4.5, January 2026*
 
